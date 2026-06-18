@@ -1566,7 +1566,7 @@ function BottomNav({ active, onChange }) {
   const activeIndex = items.findIndex(i => i.key === active); // -1 si aucun (Paramètres)
 
   return (
-    <div style={{ flexShrink: 0, padding: "10px 14px 14px",
+    <div style={{ flexShrink: 0, padding: "10px 14px calc(14px + env(safe-area-inset-bottom, 0px))",
       background: "rgba(242,215,221,0.72)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
       borderTop: "1px solid rgba(235,196,205,0.6)" }}>
       <div style={{ position: "relative", display: "flex" }}>
@@ -1695,6 +1695,17 @@ export default function ClariseApp() {
   // re-consultable depuis les Paramètres.
   const [showOnboarding, setShowOnboarding] = useState(true);
 
+  // Détecte si on est sur un vrai écran de téléphone (plein écran) ou sur grand
+  // écran (on garde alors la maquette iPhone encadrée et centrée).
+  const [isPhone, setIsPhone] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 500 : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsPhone(window.innerWidth <= 500);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   function handleResult(r) { setAnalysing(r); setSaved(false); }
   function saveAnalysis() {
     if (saved || !analysing) return;
@@ -1760,11 +1771,14 @@ export default function ClariseApp() {
 
   return (
     <HelpContext.Provider value={showHelp}>
-    <div style={{ minHeight: "100vh", background: "#D8C9C5", display: "flex", alignItems: "center",
-      justifyContent: "center", fontFamily: font, padding: 16 }}>
-      {/* iPhone frame */}
-      <div style={{ width: 390, height: 844, background: T.bg, borderRadius: 44, overflow: "hidden",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.28)", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div style={{ minHeight: "100dvh", background: isPhone ? T.bg : "#D8C9C5",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: font, padding: isPhone ? 0 : 16 }}>
+      {/* iPhone : plein écran sur téléphone, maquette encadrée sur grand écran */}
+      <div style={{ width: isPhone ? "100%" : 390, height: isPhone ? "100dvh" : 844,
+        background: T.bg, borderRadius: isPhone ? 0 : 44, overflow: "hidden",
+        boxShadow: isPhone ? "none" : "0 24px 60px rgba(0,0,0,0.28)",
+        display: "flex", flexDirection: "column", position: "relative" }}>
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
         {/* Bouton Paramètres (engrenage) */}
         {!settingsOpen && (
@@ -1784,4 +1798,3 @@ export default function ClariseApp() {
     </HelpContext.Provider>
   );
 }
-
