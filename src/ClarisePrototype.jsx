@@ -1,39 +1,3 @@
-import React, { useState, useRef, useEffect, createContext, useContext } from "react";
-import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check
-} from "lucide-react";
-
-// Contexte global : affichage des textes d'aide (sous-titres)
-const HelpContext = createContext(true);
-
-/* ============================================================
-   CLARISÉ — Prototype cliquable
-   4 écrans : Analyser · Journal · Coach IA · Se repérer
-   Analyse réelle branchée sur l'API Claude
-   ============================================================ */
-
-// ---- Design tokens (gamme rose framboise dérivée de #C87483) ----
-const T = {
-  bg: "#FBEDF0",        // fond global, rose très clair (framboise pâle)
-  text: "#3A3A3A",
-  textSoft: "#6B6B6B",
-  white: "#FFF6F8",     // cartes / zones blanches légèrement rosées
-  pink: "#C87483",      // couleur principale
-  pinkDark: "#A85667",  // appui / pressé
-  pinkSoft: "#E3A9B4",  // version douce (désactivé, contours)
-  pink100: "#F6E0E6",   // pastel clair (puces d'icônes, bulles, sélecteur)
-  pink50: "#FBEDF0",    // le plus clair
-  pinkBar: "#F2D7DD",   // fond barre du bas
-  pinkBorder: "#EBC4CD",// bordures douces
-  radius: 16,
-  // 4 niveaux de danger (signaux sémantiques — harmonisés avec la gamme douce)
-  levels: {
-    ok:          { label: "Sain",        bg: "#E6F2EA", text: "#2F6B4F", dot: "#3E8E63" },
-    preoccupant: { label: "Préoccupant", bg: "#F7ECD8", text: "#8A5310", dot: "#EC9A3A" },
-    toxique:     { label: "Toxique",     bg: "#FBE6D7", text: "#974A16", dot: "#E08338" },
-    dangereux:   { label: "Dangereux",   bg: "#F6DDDF", text: "#A33843", dot: "#D06A70" },
-  },
-};
 
 // Teintes des cartes d'analyse : en-tête (head), corps doux (body),
 // et couleur du titre dans l'en-tête (headText) pour la lisibilité.
