@@ -1,3 +1,39 @@
+import React, { useState, useRef, useEffect, createContext, useContext } from "react";
+import {
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check
+} from "lucide-react";
+
+// Contexte global : affichage des textes d'aide (sous-titres)
+const HelpContext = createContext(true);
+
+/* ============================================================
+   CLARISÉ — Prototype cliquable
+   4 écrans : Analyser · Journal · Coach IA · Se repérer
+   Analyse réelle branchée sur l'API Claude
+   ============================================================ */
+
+// ---- Design tokens (gamme rose framboise dérivée de #C87483) ----
+const T = {
+  bg: "#FBEDF0",        // fond global, rose très clair (framboise pâle)
+  text: "#3A3A3A",
+  textSoft: "#6B6B6B",
+  white: "#FFF6F8",     // cartes / zones blanches légèrement rosées
+  pink: "#C87483",      // couleur principale
+  pinkDark: "#A85667",  // appui / pressé
+  pinkSoft: "#E3A9B4",  // version douce (désactivé, contours)
+  pink100: "#F6E0E6",   // pastel clair (puces d'icônes, bulles, sélecteur)
+  pink50: "#FBEDF0",    // le plus clair
+  pinkBar: "#F2D7DD",   // fond barre du bas
+  pinkBorder: "#EBC4CD",// bordures douces
+  radius: 16,
+  // 4 niveaux de danger (signaux sémantiques — harmonisés avec la gamme douce)
+  levels: {
+    ok:          { label: "Sain",        bg: "#E6F2EA", text: "#2F6B4F", dot: "#3E8E63" },
+    preoccupant: { label: "Préoccupant", bg: "#F7ECD8", text: "#8A5310", dot: "#EC9A3A" },
+    toxique:     { label: "Toxique",     bg: "#FBE6D7", text: "#974A16", dot: "#E08338" },
+    dangereux:   { label: "Dangereux",   bg: "#F6DDDF", text: "#A33843", dot: "#D06A70" },
+  },
+};
 
 // Teintes des cartes d'analyse : en-tête (head), corps doux (body),
 // et couleur du titre dans l'en-tête (headText) pour la lisibilité.
@@ -526,13 +562,22 @@ function defForLabel(label) {
   return hit ? hit.def : null;
 }
 
-function Tag({ children }) {
+function Tag({ children, level }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ side: "bottom", left: 0 }); // placement calculé
   const touchedRef = useRef(false);
   const wrapRef = useRef(null);
   const def = defForLabel(typeof children === "string" ? children : "");
   const POP_W = 240;
+  // Couleur du tag selon le niveau de l'analyse (sain/préoccupant/toxique/dangereux).
+  // Sans niveau, on garde l'orange par défaut.
+  const TAG_COLORS = {
+    ok:          "#3E8E63",
+    preoccupant: "#EC9A3A",
+    toxique:     "#E08338",
+    dangereux:   "#D06A70",
+  };
+  const tagBg = TAG_COLORS[level] || "#E08338";
 
   function place() {
     const el = wrapRef.current;
@@ -565,7 +610,7 @@ function Tag({ children }) {
         onClick={() => { if (!touchedRef.current) toggle(); touchedRef.current = false; }}
         onMouseEnter={() => { if (def && !touchedRef.current) { place(); setOpen(true); } }}
         onMouseLeave={() => { if (!touchedRef.current) setOpen(false); }}
-        style={{ background: "#E08338", color: "#FFFFFF", padding: "7px 13px", borderRadius: 10,
+        style={{ background: tagBg, color: "#FFFFFF", padding: "7px 13px", borderRadius: 10,
           fontSize: 13.5, fontWeight: 600, display: "inline-block", cursor: def ? "pointer" : "default",
           WebkitTapHighlightColor: "transparent", userSelect: "none" }}>
         {children}
@@ -944,7 +989,7 @@ function JournalCard({ entry }) {
       <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#9C5B4E", fontWeight: 500 }}>{entry.date}</p>
       <p style={{ margin: "0 0 16px", fontSize: 17, lineHeight: 1.45, color: T.text }}>{entry.message}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {entry.tags.map((t, i) => <Tag key={i}>{t}</Tag>)}
+        {entry.tags.map((t, i) => <Tag key={i} level={entry.level}>{t}</Tag>)}
       </div>
     </div>
   );
