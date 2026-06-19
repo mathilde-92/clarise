@@ -1695,17 +1695,6 @@ export default function ClariseApp() {
   // re-consultable depuis les Paramètres.
   const [showOnboarding, setShowOnboarding] = useState(true);
 
-  // Détecte si on est sur un vrai écran de téléphone (plein écran) ou sur grand
-  // écran (on garde alors la maquette iPhone encadrée et centrée).
-  const [isPhone, setIsPhone] = useState(
-    typeof window !== "undefined" ? window.innerWidth <= 500 : false
-  );
-  useEffect(() => {
-    const onResize = () => setIsPhone(window.innerWidth <= 500);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
   function handleResult(r) { setAnalysing(r); setSaved(false); }
   function saveAnalysis() {
     if (saved || !analysing) return;
@@ -1771,29 +1760,23 @@ export default function ClariseApp() {
 
   return (
     <HelpContext.Provider value={showHelp}>
-    <div style={{ minHeight: "100dvh", background: isPhone ? T.bg : "#D8C9C5",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: font, padding: isPhone ? 0 : 16 }}>
-      {/* iPhone : plein écran sur téléphone, maquette encadrée sur grand écran */}
-      <div style={{ width: isPhone ? "100%" : 390, height: isPhone ? "100dvh" : 844,
-        background: T.bg, borderRadius: isPhone ? 0 : 44, overflow: "hidden",
-        boxShadow: isPhone ? "none" : "0 24px 60px rgba(0,0,0,0.28)",
-        display: "flex", flexDirection: "column", position: "relative" }}>
+    <div style={{ height: "100dvh", width: "100%", background: T.bg,
+      display: "flex", flexDirection: "column", overflow: "hidden",
+      fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
         {/* Bouton Paramètres (engrenage) */}
         {!settingsOpen && (
           <button onClick={() => setSettingsOpen(true)} aria-label="Paramètres"
-            style={{ position: "absolute", top: 54, right: 20, zIndex: 5, width: 38, height: 38, borderRadius: 999,
+            style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: 20, zIndex: 5, width: 38, height: 38, borderRadius: 999,
               border: "none", background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center",
               justifyContent: "center", cursor: "pointer", backdropFilter: "blur(4px)" }}>
             <Settings size={20} color={T.pink} />
           </button>
         )}
-        <div style={{ flex: 1, overflowY: isCoach ? "hidden" : "auto", padding: "60px 22px 16px", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
           {body}
         </div>
         <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } setTab(k); }} />
-      </div>
     </div>
     </HelpContext.Provider>
   );
