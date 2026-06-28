@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus
 } from "lucide-react";
+
+// Adresse du serveur Clarisé (le backend qui parle à l'IA en gardant la clé secrète).
+// Pour changer de serveur, il suffit de modifier cette ligne.
+const BACKEND_URL = "https://clarise-backend.onrender.com";
 
 // Contexte global : affichage des textes d'aide (sous-titres)
 const HelpContext = createContext(true);
@@ -524,6 +528,16 @@ const RESSOURCES = [
     desc: "Les CIDFF (Centres d'information sur les droits des femmes et des familles) accueillent, informent et accompagnent gratuitement, partout en France. Pour trouver le centre le plus proche, le 3919 peut vous orienter.",
     autres: [],
   },
+  {
+    titre: "Trouver un psychologue",
+    court: "Près de chez vous",
+    tel: null,
+    appelLabel: null,
+    desc: "Parler à un professionnel peut aider à y voir plus clair, à son rythme. Le bouton ci-dessous ouvre une recherche de psychologues autour de votre position, dans votre application de cartes. Votre position n'est ni enregistrée ni partagée par Clarisé.",
+    autres: [],
+    lien: "https://www.google.com/maps/search/psychologue+près+de+moi",
+    lienLabel: "Chercher autour de moi",
+  },
 ];
 
 // numéro affichable joliment pour l'appel
@@ -537,7 +551,7 @@ function Header({ title, sub }) {
   return (
     <div style={{ marginBottom: 24 }}>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#5A2A24", margin: 0, letterSpacing: -0.3 }}>{title}</h1>
-      {sub && showHelp && <p style={{ fontSize: 14.5, color: T.textSoft, margin: "6px 0 0", lineHeight: 1.4 }}>{sub}</p>}
+      {sub && showHelp && <p style={{ fontSize: 14.5, color: T.textSoft, margin: "8px 0 0", lineHeight: 1.4 }}>{sub}</p>}
     </div>
   );
 }
@@ -708,44 +722,15 @@ function demoAnalyze(message) {
 //  Analyse — call to Claude
 // ============================================================
 async function analyzeMessage(message, author) {
-  const sys = `Tu es le moteur d'analyse de Clarisé, une application qui aide à repérer la manipulation dans des messages.
-Analyse le message fourni et réponds UNIQUEMENT par un objet JSON valide, sans texte autour, sans backticks.
-
-Schéma exact :
-{
-  "level": "ok" | "preoccupant" | "toxique" | "dangereux",
-  "summary": "une phrase factuelle qui résume ce que fait le message",
-  "cards": [
-    { "category": "<un mécanisme>", "quote": "<extrait court du message>", "explanation": "<1 phrase, ce que ça produit chez la personne>" }
-  ],
-  "replies": ["<réponse saine 1>", "<réponse saine 2>", "<réponse saine 3>"]
-}
-
-Catégories autorisées : Culpabilisation, Menace, Chantage affectif, Gaslighting, Dévalorisation, Injonction paradoxale, Contrôle / Intrusion, Passif-agressif, Renversement de responsabilité, Minimisation.
-
-Règles de ton (impératives) :
-- factuel, rassurant, non jugeant, pédagogique.
-- Ne dis JAMAIS "vous êtes victime", "cette personne est manipulatrice", "vous êtes sous emprise".
-- Parle du MESSAGE et de son EFFET PROBABLE, pas de la personne.
-- Si le message est sain, renvoie level "ok", cards vide [], et des replies bienveillantes.
-- Niveaux : ok = respectueux ; preoccupant = ambigu/début de pression ; toxique = manipulation claire ; dangereux = menace/intimidation/contrôle.`;
-
-  const user = `Message reçu${author ? ` (de : ${author})` : ""} :\n"""${message}"""`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  // L'app n'appelle plus l'IA directement : elle appelle le serveur Clarisé,
+  // qui garde la clé secrète et interroge l'IA d'Infomaniak/Euria.
+  const res = await fetch(`${BACKEND_URL}/api/analyse`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: sys,
-      messages: [{ role: "user", content: user }],
-    }),
+    body: JSON.stringify({ message, author }),
   });
-  const data = await res.json();
-  let txt = data.content.map(b => (b.type === "text" ? b.text : "")).join("").trim();
-  txt = txt.replace(/```json|```/g, "").trim();
-  return JSON.parse(txt);
+  if (!res.ok) throw new Error("Analyse indisponible");
+  return await res.json();
 }
 
 // ============================================================
@@ -807,7 +792,7 @@ function AnalyserScreen({ onResult }) {
     <div>
       <Header title="Analyser un message" sub="Collez un message pour détecter s'il contient des signes de manipulation" />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, background: T.pink100, borderRadius: 12, padding: 4 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, background: T.pink100, borderRadius: 12, padding: 4 }}>
         {[["demo", "Démo"], ["ia", "Analyse IA"]].map(([k, lab]) => (
           <button key={k} onClick={() => setMode(k)}
             style={{ flex: 1, border: "none", borderRadius: 9, padding: "9px 0", fontSize: 14, fontWeight: 700,
@@ -827,18 +812,18 @@ function AnalyserScreen({ onResult }) {
           fontFamily: font, outline: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
       {/* compteur de caractères */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
         <span style={{ fontSize: 12.5, color: tooLong ? "#B42318" : T.textSoft, fontWeight: tooLong ? 700 : 400 }}>
           {msg.length} / {MAX_MSG}
         </span>
       </div>
       {tooLong && (
-        <p style={{ fontSize: 13, color: "#B42318", margin: "4px 0 0", lineHeight: 1.4 }}>
+        <p style={{ fontSize: 13, color: "#B42318", margin: "8px 0 0", lineHeight: 1.4 }}>
           Ce message est un peu trop long pour être analysé d'un coup. Essayez de le raccourcir, ou de coller seulement le passage qui vous interroge.
         </p>
       )}
 
-      <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "20px 0 10px", fontWeight: 500 }}>
+      <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "24px 0 8px", fontWeight: 500 }}>
         Qui vous a écrit ce message ?
       </p>
       <input
@@ -854,14 +839,14 @@ function AnalyserScreen({ onResult }) {
         onMouseLeave={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
         onTouchStart={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
         onTouchEnd={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
-        style={{ width: "100%", marginTop: 22, background: (loading || tooLong || !msg.trim()) ? T.pinkSoft : T.pink, color: "#fff",
+        style={{ width: "100%", marginTop: 24, background: (loading || tooLong || !msg.trim()) ? T.pinkSoft : T.pink, color: "#fff",
           border: "none", borderRadius: T.radius, padding: "18px", fontSize: 19, fontWeight: 700,
           fontFamily: font, cursor: (loading || tooLong || !msg.trim()) ? "default" : "pointer", transition: "background .15s",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
         {loading ? <><ThinkingDots /> Analyse en cours…</> : "Analyser"}
       </button>
 
-      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 12, lineHeight: 1.4 }}>
+      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
         {mode === "demo"
           ? "Mode démo : résultats d'exemple, sans connexion à l'IA."
           : "Mode IA : analyse réelle (nécessite le backend connecté — voir fiche de branchement)."}
@@ -869,7 +854,7 @@ function AnalyserScreen({ onResult }) {
 
       {/* Message d'erreur doux et clair */}
       {error && (
-        <div style={{ marginTop: 14, background: "#FBE3E8", border: "1px solid #EBC4CD", borderRadius: T.radius,
+        <div style={{ marginTop: 24, background: "#FBE3E8", border: "1px solid #EBC4CD", borderRadius: T.radius,
           padding: "16px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
           <AlertTriangle size={20} color="#B42318" strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} />
           <div>
@@ -892,7 +877,7 @@ function AnalysisCard({ card, level }) {
   const def = defForLabel(card.category);
   const canOpen = !!def;
   return (
-    <div style={{ borderRadius: T.radius, overflow: "hidden", marginBottom: 14, border: `1px solid ${ct.head}` }}>
+    <div style={{ borderRadius: T.radius, overflow: "hidden", marginBottom: 16, border: `1px solid ${ct.head}` }}>
       <div onClick={() => canOpen && setOpen(o => !o)}
         style={{ background: ct.head, color: ct.headText, padding: "12px 16px", display: "flex",
           alignItems: "center", gap: 9, fontWeight: 600, fontSize: 16,
@@ -928,22 +913,22 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
     <div>
       <Header title="Analyse" sub="Résultat de votre analyse" />
       <div style={{ background: T.white, borderRadius: T.radius, padding: "26px 20px 22px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-        <div style={{ textAlign: "center", marginBottom: 22 }}><LevelBadge level={result.level} /></div>
-        <p style={{ fontSize: 17, lineHeight: 1.5, color: T.text, margin: "0 0 22px", textAlign: "center" }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}><LevelBadge level={result.level} /></div>
+        <p style={{ fontSize: 17, lineHeight: 1.5, color: T.text, margin: "0 0 24px", textAlign: "center" }}>
           {result.message}
         </p>
 
         {result.cards && result.cards.length > 0 ? result.cards.map((c, i) => (
           <AnalysisCard key={i} card={c} level={result.level} />
         )) : (
-          <div style={{ background: CARD_TINT.ok.body, borderRadius: T.radius, padding: 18, marginBottom: 14 }}>
+          <div style={{ background: CARD_TINT.ok.body, borderRadius: T.radius, padding: 18, marginBottom: 16 }}>
             <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.45 }}>{result.summary}</p>
           </div>
         )}
 
         {result.replies && result.replies.length > 0 && (
-          <div style={{ marginTop: 20 }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: "#5A2A24", margin: "0 0 10px" }}>Des réponses possibles</p>
+          <div style={{ marginTop: 24 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#5A2A24", margin: "0 0 8px" }}>Des réponses possibles</p>
             {result.replies.map((r, i) => (
               <div key={i} style={{ background: "#fff", border: `1px solid ${T.pinkSoft}`, borderRadius: 12,
                 padding: "11px 14px", marginBottom: 8, fontSize: 14.5, lineHeight: 1.4, color: T.text }}>
@@ -959,19 +944,19 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
           onMouseLeave={e => { if (!saved) e.currentTarget.style.background = T.pink; }}
           onTouchStart={e => { if (!saved) e.currentTarget.style.background = T.pinkDark; }}
           onTouchEnd={e => { if (!saved) e.currentTarget.style.background = T.pink; }}
-          style={{ width: "100%", marginTop: 18, background: saved ? "#B7CBB8" : T.pink, color: "#fff", border: "none",
+          style={{ width: "100%", marginTop: 24, background: saved ? "#B7CBB8" : T.pink, color: "#fff", border: "none",
             borderRadius: T.radius, padding: 16, fontSize: 16.5, fontWeight: 700, fontFamily: font, cursor: saved ? "default" : "pointer",
             transition: "background .15s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
           <Bookmark size={18} /> {saved ? "Enregistré dans le journal" : "Sauvegarder cette analyse"}
         </button>
         <button onClick={onNew}
-          style={{ width: "100%", marginTop: 10, background: "transparent", color: T.pink, border: `1.5px solid ${T.pink}`,
+          style={{ width: "100%", marginTop: 16, background: "transparent", color: T.pink, border: `1.5px solid ${T.pink}`,
             borderRadius: T.radius, padding: 15, fontSize: 16, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
           Nouvelle analyse
         </button>
       </div>
-      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
-        Cette analyse n'est pas un diagnostic. Elle vous aide à reprendre du recul.
+      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
+        Cette analyse n'est pas un diagnostic, elle vous aide à prendre du recul.
       </p>
     </div>
   );
@@ -981,10 +966,17 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
 //  Screen: Journal
 // ============================================================
 function JournalCard({ entry }) {
+  // Couleur du badge selon le type d'entrée :
+  // - expéditeur nommé (Marc, Julien…) → rose framboise
+  // - note personnelle → taupe doux
+  // - conseil du coach → vert sauge
+  let badgeBg = T.pink, badgeColor = "#fff";
+  if (entry.author === "Note") { badgeBg = "#B7A9A2"; badgeColor = "#fff"; }
+  else if (entry.author === "Conseil du coach") { badgeBg = "#9CB89A"; badgeColor = "#1F3D27"; }
   return (
     <div style={{ position: "relative", background: T.white, borderRadius: 18, padding: "22px 20px 20px",
-      marginBottom: 26, boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
-      <div style={{ position: "absolute", top: -12, right: -4, background: T.pink, color: "#fff",
+      marginBottom: 24, boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
+      <div style={{ position: "absolute", top: -12, right: -4, background: badgeBg, color: badgeColor,
         padding: "8px 16px", borderRadius: 12, fontSize: 15, fontWeight: 600 }}>{entry.author}</div>
       <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#9C5B4E", fontWeight: 500 }}>{entry.date}</p>
       <p style={{ margin: "0 0 16px", fontSize: 17, lineHeight: 1.45, color: T.text }}>{entry.message}</p>
@@ -997,19 +989,42 @@ function JournalCard({ entry }) {
 
 function JournalScreen({ entries, onAddNote }) {
   const [note, setNote] = useState("");
+  const canAdd = note.trim().length > 0;
+  function addNote() {
+    if (!canAdd) return;
+    onAddNote(note.trim());
+    setNote("");
+  }
   return (
     <div>
       <Header title="Journal" sub="Gardez une trace de vos ressentis et analyses" />
-      {entries.map(e => <JournalCard key={e.id} entry={e} />)}
-      <div style={{ background: T.white, borderRadius: T.radius, padding: 4, marginTop: 6 }}>
+
+      {/* Zone d'écriture en haut : accessible tout de suite, sans scroller */}
+      <div style={{ background: T.white, borderRadius: T.radius, padding: 14, marginBottom: 24,
+        boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
         <textarea value={note} onChange={e => setNote(e.target.value)}
           placeholder="Écrire une note…"
-          onBlur={() => { if (note.trim()) { onAddNote(note.trim()); setNote(""); } }}
-          style={{ width: "100%", minHeight: 64, background: "transparent", border: "none", borderRadius: 12,
-            padding: 16, fontSize: 15.5, color: T.text, resize: "none", boxSizing: "border-box",
+          style={{ width: "100%", minHeight: 64, background: "transparent", border: "none",
+            padding: "4px 4px 10px", fontSize: 15.5, color: T.text, resize: "none", boxSizing: "border-box",
             fontFamily: font, outline: "none" }} />
+        <button onClick={addNote} disabled={!canAdd}
+          style={{ width: "100%", padding: "13px 0", borderRadius: 12, border: "none",
+            background: canAdd ? T.pink : T.pinkSoft, color: "#fff", fontSize: 16, fontWeight: 700,
+            fontFamily: font, cursor: canAdd ? "pointer" : "default", transition: "background 0.2s",
+            opacity: canAdd ? 1 : 0.7 }}>
+          Ajouter au journal
+        </button>
       </div>
-      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 16 }}>
+
+      {entries.length === 0 ? (
+        <p style={{ fontSize: 14.5, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.5 }}>
+          Vos notes et analyses enregistrées apparaîtront ici, de la plus récente à la plus ancienne.
+        </p>
+      ) : (
+        entries.map(e => <JournalCard key={e.id} entry={e} />)
+      )}
+
+      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24 }}>
         Chaque note est datée et sécurisée, pour suivre votre évolution.
       </p>
     </div>
@@ -1019,13 +1034,20 @@ function JournalScreen({ entries, onAddNote }) {
 // ============================================================
 //  Screen: Coach IA
 // ============================================================
-function CoachScreen() {
+function CoachScreen({ onAddToJournal }) {
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Clarisé est à votre écoute. Posez vos questions et découvrez des pistes concrètes pour mieux comprendre la situation." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [added, setAdded] = useState({}); // index -> true quand ajouté au journal
   const scrollRef = useRef(null);
+
+  function addToJournal(i, text) {
+    if (added[i]) return;
+    onAddToJournal && onAddToJournal(text);
+    setAdded(a => ({ ...a, [i]: true }));
+  }
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages, loading]);
 
@@ -1033,22 +1055,34 @@ function CoachScreen() {
     const text = input.trim();
     if (!text || loading) return;
     const next = [...messages, { role: "user", text }];
+
+    // Pas de connexion : on prévient clairement que l'app n'est pas cassée.
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      setMessages([...next, { role: "assistant", text: "Je n'ai pas de connexion Internet pour le moment. L'application fonctionne bien, mais le coach a besoin d'être en ligne pour vous répondre. Vérifiez votre connexion, puis réessayez." }]);
+      setInput("");
+      return;
+    }
+
     setMessages(next); setInput(""); setLoading(true);
     try {
-      const sys = `Tu es le Coach de Clarisé. Ton : doux, protecteur, jamais culpabilisant, pédagogique.
-Tu aides la personne à comprendre des messages reçus et à poser des limites saines.
-Ne poses pas de diagnostic, ne qualifie pas les gens ("manipulateur", "pervers"). Parle des messages et de leurs effets.
-Reste bref (3-5 phrases), concret, et propose une piste d'action ou une reformulation quand c'est utile.`;
+      // On envoie l'historique au serveur Clarisé, qui ajoute le prompt du coach
+      // et la clé secrète, puis interroge l'IA d'Infomaniak/Euria.
       const apiMsgs = next.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.text }));
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch(`${BACKEND_URL}/api/coach`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: sys, messages: apiMsgs }),
+        body: JSON.stringify({ messages: apiMsgs }),
       });
+      if (!res.ok) throw new Error("coach indisponible");
       const data = await res.json();
-      const reply = data.content.map(b => (b.type === "text" ? b.text : "")).join("").trim();
-      setMessages([...next, { role: "assistant", text: reply }]);
+      const reply = (data.reply || "").trim();
+      // addable: true => c'est une vraie réponse, qu'on peut joindre au journal
+      setMessages([...next, { role: "assistant", text: reply, addable: true }]);
     } catch {
-      setMessages([...next, { role: "assistant", text: "Je n'ai pas pu répondre à l'instant. Réessayez dans un moment." }]);
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      const msg = offline
+        ? "La connexion s'est interrompue. L'application n'est pas en cause : le coach a juste besoin d'Internet. Réessayez une fois reconnecté."
+        : "Je n'ai pas pu répondre à l'instant. Réessayez dans un moment.";
+      setMessages([...next, { role: "assistant", text: msg }]);
     } finally { setLoading(false); }
   }
 
@@ -1057,15 +1091,25 @@ Reste bref (3-5 phrases), concret, et propose une piste d'action ou une reformul
       <Header title="Coach Clarisé" sub="Posez vos questions et obtenez du soutien" />
       <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         {messages.map((m, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-start" : "flex-end", marginBottom: 14 }}>
+          <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-start" : "flex-end", marginBottom: 14 }}>
             <div style={{ maxWidth: "85%", background: m.role === "user" ? T.white : "#E7BFC8", color: T.text,
               padding: "14px 16px", borderRadius: 18, fontSize: 16, lineHeight: 1.5, whiteSpace: "pre-wrap",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>{m.text}</div>
+            {m.addable && (
+              <button onClick={() => addToJournal(i, m.text)} disabled={added[i]}
+                style={{ marginTop: 6, marginRight: 4, background: "transparent", border: "none",
+                  color: added[i] ? T.textSoft : T.pink, fontSize: 13.5, fontWeight: 600, fontFamily: font,
+                  cursor: added[i] ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                {added[i]
+                  ? <>✓ Ajouté au journal</>
+                  : <><Plus size={15} /> Ajouter au journal</>}
+              </button>
+            )}
           </div>
         ))}
         {loading && <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, color: T.textSoft, fontSize: 14, paddingRight: 8, marginBottom: 14 }}><ThinkingDots color={T.pink} /> Clarisé écrit…</div>}
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 24, alignItems: "flex-end" }}>
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="Écrire un message à Clarisé"
@@ -1115,11 +1159,11 @@ function QcmRunner({ module, onBack }) {
           </div>
           <p style={{ margin: 0, fontSize: 16, lineHeight: 1.5, color: "#3A3A3A" }}>{res.text}</p>
         </div>
-        <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginBottom: 18 }}>
+        <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginBottom: 24 }}>
           Ce test ne remplace pas un avis professionnel.
         </p>
         <button onClick={restart} style={secondaryBtnStyle}>Refaire ce test</button>
-        <button onClick={onBack} style={{ ...secondaryBtnStyle, marginTop: 10, background: T.pink, color: "#fff", border: "none" }}>
+        <button onClick={onBack} style={{ ...secondaryBtnStyle, marginTop: 16, background: T.pink, color: "#fff", border: "none" }}>
           Explorer un autre thème
         </button>
       </div>
@@ -1131,7 +1175,7 @@ function QcmRunner({ module, onBack }) {
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> Tous les thèmes</button>
       <Header title={module.title} sub={module.sub} />
       {/* progress */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 22 }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 24 }}>
         {module.questions.map((_, i) => (
           <div key={i} style={{ flex: 1, height: 5, borderRadius: 999, background: i <= step ? T.pink : "#EAD3CD" }} />
         ))}
@@ -1188,7 +1232,7 @@ function QcmListScreen({ onOpenQcm, onBack }) {
           </button>
         ))}
       </div>
-      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 18 }}>
+      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24 }}>
         Chaque thème est un court test indépendant. Faites-en un seul, plusieurs, ou revenez plus tard.
       </p>
     </div>
@@ -1202,7 +1246,7 @@ function DefinitionScreen({ item, onBack, backLabel }) {
   return (
     <div>
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> {backLabel}</button>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
         <span style={{ width: 40, height: 40, borderRadius: 11, background: T.pink, display: "flex",
           alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {React.createElement(item.icon, { size: 20, color: "#fff", strokeWidth: 2 })}
@@ -1213,15 +1257,15 @@ function DefinitionScreen({ item, onBack, backLabel }) {
       <div style={{ background: T.white, borderRadius: T.radius, padding: "20px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: T.text }}>{item.def}</p>
 
-        <p style={{ margin: "18px 0 6px", fontSize: 14, fontWeight: 700, color: "#5A2A24" }}>Son effet probable</p>
+        <p style={{ margin: "24px 0 8px", fontSize: 14, fontWeight: 700, color: "#5A2A24" }}>Son effet probable</p>
         <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.5, color: T.text }}>{item.effet}</p>
 
-        <p style={{ margin: "18px 0 6px", fontSize: 14, fontWeight: 700, color: "#5A2A24" }}>Exemple</p>
+        <p style={{ margin: "24px 0 8px", fontSize: 14, fontWeight: 700, color: "#5A2A24" }}>Exemple</p>
         <div style={{ background: T.pink100, borderRadius: 12, padding: "12px 14px" }}>
           <p style={{ margin: 0, fontSize: 15.5, fontStyle: "italic", lineHeight: 1.45, color: T.text }}>{item.exemple}</p>
         </div>
       </div>
-      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
+      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
         Repérer un mécanisme aide à mettre des mots sur ce qu'on ressent — sans juger la personne.
       </p>
     </div>
@@ -1249,7 +1293,7 @@ function MecaListScreen({ onOpenMeca, onBack }) {
 
       {/* Barre de recherche */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, background: T.white, borderRadius: T.radius,
-        padding: "12px 16px", marginBottom: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+        padding: "12px 16px", marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
         <Search size={18} color={T.textSoft} />
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un mot…"
           style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 15.5,
@@ -1259,7 +1303,7 @@ function MecaListScreen({ onOpenMeca, onBack }) {
       </div>
 
       {/* Filtres par famille */}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 14 }}>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 6, marginBottom: 24 }}>
         {["Tout", ...MECA_CATS].map(c => (
           <button key={c} onClick={() => setCat(c)}
             style={{ flexShrink: 0, border: "none", borderRadius: 999, padding: "8px 14px", fontSize: 13,
@@ -1270,7 +1314,7 @@ function MecaListScreen({ onOpenMeca, onBack }) {
         ))}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {filtered.length === 0 && (
           <p style={{ fontSize: 14.5, color: T.textSoft, textAlign: "center", padding: "20px 0" }}>
             Aucun mot ne correspond à « {query} ».
@@ -1307,7 +1351,7 @@ function callBtn(label, num, key) {
   return (
     <a key={key} href={telHref(num)} {...pressFx()}
       style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-        background: T.pink, color: "#fff", borderRadius: T.radius, padding: "15px 18px", marginBottom: 10,
+        background: T.pink, color: "#fff", borderRadius: T.radius, padding: "15px 18px", marginBottom: 12,
         textDecoration: "none", fontFamily: font, transition: "background .15s" }}>
       <span style={{ fontSize: 15.5, fontWeight: 600 }}>{label}</span>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 17, fontWeight: 700 }}>
@@ -1322,17 +1366,25 @@ function RessourceScreen({ item, onBack, backLabel }) {
     <div>
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> {backLabel}</button>
       <Header title={item.titre} sub={item.court} />
-      <div style={{ background: T.white, borderRadius: T.radius, padding: 20, marginBottom: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+      <div style={{ background: T.white, borderRadius: T.radius, padding: 20, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: T.text }}>{item.desc}</p>
       </div>
       {item.tel && callBtn(item.appelLabel || `Appeler ${item.titre}`, item.tel, "main")}
       {item.autres.map((a, i) => callBtn(a.label, a.tel, i))}
-      {!item.tel && item.autres.length === 0 && (
+      {item.lien && (
+        <a href={item.lien} target="_blank" rel="noopener noreferrer"
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none",
+            background: T.pink, color: "#fff", borderRadius: T.radius, padding: "15px 18px",
+            fontSize: 16, fontWeight: 700, fontFamily: font }}>
+          <Navigation size={18} /> {item.lienLabel || "Chercher autour de moi"}
+        </a>
+      )}
+      {!item.tel && item.autres.length === 0 && !item.lien && (
         <p style={{ fontSize: 14, color: T.textSoft, textAlign: "center" }}>
           Aucun numéro direct — passez par le 3919 pour être orienté·e.
         </p>
       )}
-      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 14, lineHeight: 1.4 }}>
+      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
         En cas de danger immédiat, composez le 17 (police) ou le 112.
       </p>
     </div>
@@ -1356,13 +1408,13 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
       <Header title="Repérer" sub="Comprendre. Évaluer. Trouver de l'aide." />
 
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "4px 0 2px" }}>Évaluer ma situation</h2>
+        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "0 0 4px" }}>Évaluer ma situation</h2>
         <button onClick={onSeeAllQcm} style={{ background: "transparent", border: "none", color: T.pink,
           fontSize: 14, fontWeight: 700, fontFamily: font, cursor: "pointer", padding: 0 }}>
           Tout explorer ›
         </button>
       </div>
-      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 14px" }}>Des QCM pour vous auto-évaluer</p>
+      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Des QCM pour vous auto-évaluer</p>
       <CarouselRow items={QCM_MODULES} render={(m, i) => (
         <button onClick={() => onOpenQcm(i)}
           style={{ width: 210, height: 132, boxSizing: "border-box", textAlign: "left", background: "#fff",
@@ -1374,14 +1426,14 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
         </button>
       )} />
 
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "20px 0 2px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "32px 0 4px" }}>
         <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: 0 }}>Comprendre les mécanismes</h2>
         <button onClick={onSeeAllMeca} style={{ background: "transparent", border: "none", color: T.pink,
           fontSize: 14, fontWeight: 700, fontFamily: font, cursor: "pointer", padding: 0, flexShrink: 0 }}>
           Tout explorer ›
         </button>
       </div>
-      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 14px" }}>Définitions pour décrypter les comportements toxiques</p>
+      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Définitions pour décrypter les comportements toxiques</p>
       <CarouselRow items={MECANISMES} render={(m, i) => (
         <button onClick={() => onOpenMeca(i)}
           style={{ width: 170, minHeight: 138, background: "#fff", borderRadius: T.radius, display: "flex",
@@ -1396,8 +1448,8 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
         </button>
       )} />
 
-      <div style={{ background: T.pink, borderRadius: 20, padding: "20px 18px", margin: "20px -4px 0" }}>
-        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>Obtenir de l'aide</h2>
+      <div style={{ background: T.pink, borderRadius: 20, padding: "20px 18px", margin: "32px -4px 0" }}>
+        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>Obtenir de l'aide</h2>
         <p style={{ fontSize: 14, color: T.pink100, margin: "0 0 16px" }}>Ressources d'urgence et soutien</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {RESSOURCES.map((r, i) => (
@@ -1704,6 +1756,35 @@ export default function ClariseApp() {
   // re-consultable depuis les Paramètres.
   const [showOnboarding, setShowOnboarding] = useState(true);
 
+  // Hauteur réellement visible : quand le clavier s'ouvre sur mobile, la zone
+  // visible rétrécit. On suit cette hauteur pour que la barre du bas reste
+  // toujours visible au lieu d'être poussée hors de l'écran.
+  const [viewH, setViewH] = useState(null);
+  const [kbOpen, setKbOpen] = useState(false);
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!vv) return;
+    const update = () => {
+      setViewH(vv.height);
+      // Clavier ouvert si la zone visible est nettement plus courte que la fenêtre.
+      const full = window.innerHeight || vv.height;
+      setKbOpen(full - vv.height > 150);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
+  }, []);
+
+  // Remettre la page tout en haut chaque fois qu'on change d'écran
+  // (onglet, ouverture/fermeture d'une sous-page, paramètres, analyse…).
+  const contentRef = useRef(null);
+  const viewKey = [tab, settingsOpen, analysing ? "a" : "", openQcm, qcmListOpen,
+    openMeca, mecaListOpen, openAide].join("|");
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTo(0, 0);
+  }, [viewKey]);
+
   function handleResult(r) { setAnalysing(r); setSaved(false); }
   function saveAnalysis() {
     if (saved || !analysing) return;
@@ -1720,6 +1801,9 @@ export default function ClariseApp() {
   function addNote(text) {
     setJournal([{ id: Date.now(), author: "Note", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] }, ...journal]);
   }
+  function addCoachNote(text) {
+    setJournal([{ id: Date.now(), author: "Conseil du coach", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] }, ...journal]);
+  }
 
   const isCoach = tab === "coach" && !settingsOpen;
   let body;
@@ -1734,7 +1818,7 @@ export default function ClariseApp() {
     ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis} saved={saved} />
     : <AnalyserScreen onResult={handleResult} />;
   else if (tab === "journal") body = <JournalScreen entries={journal} onAddNote={addNote} />;
-  else if (isCoach) body = <CoachScreen />;
+  else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} />;
   else if (openQcm !== null) body = (
     <QcmRunner module={QCM_MODULES[openQcm]}
       onBack={() => { setOpenQcm(null); if (!qcmFromList) setQcmListOpen(false); }} />
@@ -1769,7 +1853,7 @@ export default function ClariseApp() {
 
   return (
     <HelpContext.Provider value={showHelp}>
-    <div style={{ height: "100dvh", width: "100%", background: T.bg,
+    <div style={{ height: viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
@@ -1782,10 +1866,10 @@ export default function ClariseApp() {
             <Settings size={20} color={T.pink} />
           </button>
         )}
-        <div style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
+        <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } setTab(k); }} />
+        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
