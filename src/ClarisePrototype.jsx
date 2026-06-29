@@ -743,7 +743,6 @@ function AnalyserScreen({ onResult }) {
   const [author, setAuthor] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null); // { titre, texte } ou null
-  const [mode, setMode] = useState("demo"); // "demo" | "ia"
 
   const tooLong = msg.length > MAX_MSG;
 
@@ -751,16 +750,11 @@ function AnalyserScreen({ onResult }) {
     if (!msg.trim() || tooLong) return;
     setError(null);
 
-    if (mode === "demo") {
-      onResult({ message: msg.trim(), author: author.trim(), ...demoAnalyze(msg.trim()) });
-      return;
-    }
-
     // Vérifier la connexion avant d'essayer
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       setError({
         titre: "Pas de connexion",
-        texte: "L'analyse a besoin d'Internet pour fonctionner. Vérifiez votre connexion, puis réessayez. En attendant, vous pouvez utiliser le mode Démo.",
+        texte: "L'analyse a besoin d'Internet pour fonctionner. Vérifie ta connexion, puis réessaie.",
       });
       return;
     }
@@ -770,17 +764,16 @@ function AnalyserScreen({ onResult }) {
       const result = await analyzeMessage(msg.trim(), author.trim());
       onResult({ message: msg.trim(), author: author.trim(), ...result });
     } catch (e) {
-      // Message d'erreur adapté à la cause probable
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       if (offline) {
         setError({
           titre: "Connexion perdue",
-          texte: "La connexion s'est interrompue pendant l'analyse. Réessayez quand vous serez de nouveau en ligne.",
+          texte: "La connexion s'est interrompue pendant l'analyse. Réessaie quand tu seras de nouveau en ligne.",
         });
       } else {
         setError({
           titre: "L'analyse n'a pas abouti",
-          texte: "Quelque chose n'a pas fonctionné de notre côté. Vous pouvez réessayer dans un instant, ou utiliser le mode Démo en attendant.",
+          texte: "Quelque chose n'a pas fonctionné de notre côté. L'application n'est pas cassée : réessaie dans un instant.",
         });
       }
     } finally {
@@ -790,18 +783,7 @@ function AnalyserScreen({ onResult }) {
 
   return (
     <div>
-      <Header title="Analyser un message" sub="Collez un message pour détecter s'il contient des signes de manipulation" />
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, background: T.pink100, borderRadius: 12, padding: 4 }}>
-        {[["demo", "Démo"], ["ia", "Analyse IA"]].map(([k, lab]) => (
-          <button key={k} onClick={() => setMode(k)}
-            style={{ flex: 1, border: "none", borderRadius: 9, padding: "9px 0", fontSize: 14, fontWeight: 700,
-              fontFamily: font, cursor: "pointer", background: mode === k ? "#fff" : "transparent",
-              color: mode === k ? T.pink : "#8A726E", boxShadow: mode === k ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
-            {lab}
-          </button>
-        ))}
-      </div>
+      <Header title="Analyser un message" sub="Colle un message pour détecter s'il contient des signes de manipulation" />
 
       <textarea
         value={msg} onChange={e => { setMsg(e.target.value); if (error) setError(null); }}
@@ -819,16 +801,16 @@ function AnalyserScreen({ onResult }) {
       </div>
       {tooLong && (
         <p style={{ fontSize: 13, color: "#B42318", margin: "8px 0 0", lineHeight: 1.4 }}>
-          Ce message est un peu trop long pour être analysé d'un coup. Essayez de le raccourcir, ou de coller seulement le passage qui vous interroge.
+          Ce message est un peu trop long pour être analysé d'un coup. Essaie de le raccourcir, ou de coller seulement le passage qui t'interroge.
         </p>
       )}
 
       <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "24px 0 8px", fontWeight: 500 }}>
-        Qui vous a écrit ce message ?
+        Qui t'a écrit ce message ?
       </p>
       <input
         value={author} onChange={e => setAuthor(e.target.value)}
-        placeholder="ex : votre mère, Marc, votre patron…"
+        placeholder="ex : ta mère, Marc, ton patron…"
         style={{ width: "100%", background: T.white, border: "none", borderRadius: 12, padding: "16px 18px",
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
@@ -843,13 +825,11 @@ function AnalyserScreen({ onResult }) {
           border: "none", borderRadius: T.radius, padding: "18px", fontSize: 19, fontWeight: 700,
           fontFamily: font, cursor: (loading || tooLong || !msg.trim()) ? "default" : "pointer", transition: "background .15s",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        {loading ? <><ThinkingDots /> Analyse en cours…</> : "Analyser"}
+        {loading ? <>Analyse en cours <ThinkingDots /></> : "Analyser"}
       </button>
 
       <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
-        {mode === "demo"
-          ? "Mode démo : résultats d'exemple, sans connexion à l'IA."
-          : "Mode IA : analyse réelle (nécessite le backend connecté — voir fiche de branchement)."}
+        Cette analyse n'est pas un diagnostic, elle t'aide à prendre du recul.
       </p>
 
       {/* Message d'erreur doux et clair */}
@@ -1032,11 +1012,93 @@ function JournalScreen({ entries, onAddNote }) {
 }
 
 // ============================================================
+//  Rendu enrichi des réponses du coach : sauts de ligne, gras (**…**),
+//  puces (- …) — pensé pour une lecture facile (dyslexie).
+// ============================================================
+function renderInline(text, keyBase) {
+  // Découpe sur **gras** et met en gras les portions entre **
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((p, i) => {
+    if (/^\*\*[^*]+\*\*$/.test(p)) {
+      return <strong key={`${keyBase}-b${i}`}>{p.slice(2, -2)}</strong>;
+    }
+    return <span key={`${keyBase}-t${i}`}>{p}</span>;
+  });
+}
+
+function RichText({ text }) {
+  // On retire la balise [URGENCE] du texte affiché (gérée à part).
+  const clean = text.replace(/\[URGENCE\]/g, "").trimEnd();
+  const lines = clean.split("\n");
+  const blocks = [];
+  let bullets = null;
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    const isBullet = /^[-•]\s+/.test(trimmed);
+    if (isBullet) {
+      if (!bullets) bullets = [];
+      bullets.push(trimmed.replace(/^[-•]\s+/, ""));
+    } else {
+      if (bullets) {
+        blocks.push(
+          <ul key={`ul${i}`} style={{ margin: "4px 0 8px", paddingLeft: 20 }}>
+            {bullets.map((b, j) => (
+              <li key={j} style={{ marginBottom: 4, lineHeight: 1.5 }}>{renderInline(b, `b${i}-${j}`)}</li>
+            ))}
+          </ul>
+        );
+        bullets = null;
+      }
+      if (trimmed === "") {
+        blocks.push(<div key={`sp${i}`} style={{ height: 8 }} />);
+      } else {
+        blocks.push(
+          <p key={`p${i}`} style={{ margin: "0 0 6px", lineHeight: 1.55 }}>{renderInline(line, `p${i}`)}</p>
+        );
+      }
+    }
+  });
+  if (bullets) {
+    blocks.push(
+      <ul key="ul-last" style={{ margin: "4px 0 8px", paddingLeft: 20 }}>
+        {bullets.map((b, j) => (
+          <li key={j} style={{ marginBottom: 4, lineHeight: 1.5 }}>{renderInline(b, `bl-${j}`)}</li>
+        ))}
+      </ul>
+    );
+  }
+  return <>{blocks}</>;
+}
+
+// Boutons d'appel d'urgence cliquables (affichés quand le coach renvoie [URGENCE]).
+const URGENCE_NUMEROS = [
+  { label: "3919 — Violences faites aux femmes", tel: "3919" },
+  { label: "3114 — Prévention du suicide", tel: "3114" },
+  { label: "17 — Police (danger immédiat)", tel: "17" },
+  { label: "112 — Urgences européennes", tel: "112" },
+];
+function EmergencyButtons() {
+  return (
+    <div style={{ marginTop: 10, width: "85%", alignSelf: "flex-end" }}>
+      {URGENCE_NUMEROS.map((u, i) => (
+        <a key={i} href={`tel:${u.tel}`}
+          style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
+            background: "#FFD8D8", color: "#B42318", border: "1px solid #F0B4B4",
+            borderRadius: 12, padding: "12px 14px", marginBottom: 8, fontSize: 14.5, fontWeight: 700,
+            fontFamily: font }}>
+          <Phone size={17} strokeWidth={2.4} /> {u.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
 //  Screen: Coach IA
 // ============================================================
 function CoachScreen({ onAddToJournal }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Clarisé est à votre écoute. Posez vos questions et découvrez des pistes concrètes pour mieux comprendre la situation." },
+    { role: "assistant", text: "Clarisé est à ton écoute. Pose tes questions et découvre des pistes concrètes pour mieux comprendre la situation." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1093,8 +1155,12 @@ function CoachScreen({ onAddToJournal }) {
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-start" : "flex-end", marginBottom: 14 }}>
             <div style={{ maxWidth: "85%", background: m.role === "user" ? T.white : "#E7BFC8", color: T.text,
-              padding: "14px 16px", borderRadius: 18, fontSize: 16, lineHeight: 1.5, whiteSpace: "pre-wrap",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>{m.text}</div>
+              padding: "14px 16px", borderRadius: 18, fontSize: 16, lineHeight: 1.5,
+              whiteSpace: m.role === "user" ? "pre-wrap" : "normal",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+              {m.role === "user" ? m.text : <RichText text={m.text} />}
+            </div>
+            {m.role !== "user" && /\[URGENCE\]/.test(m.text) && <EmergencyButtons />}
             {m.addable && (
               <button onClick={() => addToJournal(i, m.text)} disabled={added[i]}
                 style={{ marginTop: 6, marginRight: 4, background: "transparent", border: "none",
@@ -1869,7 +1935,7 @@ export default function ClariseApp() {
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } setTab(k); }} />}
+        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
