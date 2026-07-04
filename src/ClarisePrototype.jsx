@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut
 } from "lucide-react";
 
 // Adresse du serveur Clarisé (le backend qui parle à l'IA en gardant la clé secrète).
@@ -747,7 +747,15 @@ function AnalyserScreen({ onResult }) {
   const tooLong = msg.length > MAX_MSG;
 
   async function run() {
-    if (!msg.trim() || tooLong) return;
+    // Champ vide
+    if (!msg.trim()) {
+      setError({
+        titre: "Aucun message à analyser",
+        texte: "Colle d'abord un message dans la zone au-dessus, puis appuie sur Analyser.",
+      });
+      return;
+    }
+    if (tooLong) return;
     setError(null);
 
     // Vérifier la connexion avant d'essayer
@@ -762,6 +770,14 @@ function AnalyserScreen({ onResult }) {
     setLoading(true);
     try {
       const result = await analyzeMessage(msg.trim(), author.trim());
+      // Texte incompréhensible détecté par l'IA
+      if (result && result.level === "invalide") {
+        setError({
+          titre: "Je ne peux pas analyser ce message",
+          texte: "Ce texte ne semble pas être un vrai message. Essaie de coller un message que tu as reçu.",
+        });
+        return;
+      }
       onResult({ message: msg.trim(), author: author.trim(), ...result });
     } catch (e) {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
@@ -815,15 +831,15 @@ function AnalyserScreen({ onResult }) {
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
-      <button onClick={run} disabled={loading || !msg.trim() || tooLong}
+      <button onClick={run} disabled={loading || tooLong}
         onMouseDown={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
         onMouseUp={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
         onMouseLeave={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
         onTouchStart={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
         onTouchEnd={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
-        style={{ width: "100%", marginTop: 24, background: (loading || tooLong || !msg.trim()) ? T.pinkSoft : T.pink, color: "#fff",
+        style={{ width: "100%", marginTop: 24, background: (loading || tooLong) ? T.pinkSoft : T.pink, color: "#fff",
           border: "none", borderRadius: T.radius, padding: "18px", fontSize: 19, fontWeight: 700,
-          fontFamily: font, cursor: (loading || tooLong || !msg.trim()) ? "default" : "pointer", transition: "background .15s",
+          fontFamily: font, cursor: (loading || tooLong) ? "default" : "pointer", transition: "background .15s",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
         {loading ? <>Analyse en cours <ThinkingDots /></> : "Analyser"}
       </button>
@@ -889,9 +905,10 @@ function AnalysisCard({ card, level }) {
 // ============================================================
 function AnalyseScreen({ result, onSave, onNew, saved }) {
   const tint = CARD_TINT[result.level] || CARD_TINT.preoccupant;
+  const [showReplies, setShowReplies] = useState(false);
   return (
     <div>
-      <Header title="Analyse" sub="Résultat de votre analyse" />
+      <Header title="Analyse" sub="Résultat de ton analyse" />
       <div style={{ background: T.white, borderRadius: T.radius, padding: "26px 20px 22px", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <div style={{ textAlign: "center", marginBottom: 24 }}><LevelBadge level={result.level} /></div>
         <p style={{ fontSize: 17, lineHeight: 1.5, color: T.text, margin: "0 0 24px", textAlign: "center" }}>
@@ -908,13 +925,35 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
 
         {result.replies && result.replies.length > 0 && (
           <div style={{ marginTop: 24 }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: "#5A2A24", margin: "0 0 8px" }}>Des réponses possibles</p>
-            {result.replies.map((r, i) => (
-              <div key={i} style={{ background: "#fff", border: `1px solid ${T.pinkSoft}`, borderRadius: 12,
-                padding: "11px 14px", marginBottom: 8, fontSize: 14.5, lineHeight: 1.4, color: T.text }}>
-                {r}
+            {!showReplies ? (
+              <div style={{ background: "#fff", border: `1px solid ${T.pinkSoft}`, borderRadius: T.radius,
+                padding: "16px 18px" }}>
+                <p style={{ margin: "0 0 12px", fontSize: 15, lineHeight: 1.45, color: T.text }}>
+                  Veux-tu que je te propose des pistes pour répondre ?
+                </p>
+                <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.4, color: T.textSoft }}>
+                  Tu n'es pas obligée de répondre à ce message. Tu peux aussi prendre ton temps, ou ne rien faire.
+                </p>
+                <button onClick={() => setShowReplies(true)}
+                  style={{ background: T.pink, color: "#fff", border: "none", borderRadius: 999,
+                    padding: "10px 18px", fontSize: 14.5, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
+                  Oui, montre-moi des pistes
+                </button>
               </div>
-            ))}
+            ) : (
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#5A2A24", margin: "0 0 4px" }}>Des pistes possibles</p>
+                <p style={{ fontSize: 12.5, color: T.textSoft, margin: "0 0 10px", lineHeight: 1.4 }}>
+                  Ce sont des idées parmi d'autres — tu restes libre, y compris de ne pas répondre.
+                </p>
+                {result.replies.map((r, i) => (
+                  <div key={i} style={{ background: "#fff", border: `1px solid ${T.pinkSoft}`, borderRadius: 12,
+                    padding: "11px 14px", marginBottom: 8, fontSize: 14.5, lineHeight: 1.4, color: T.text }}>
+                    {r}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -953,12 +992,20 @@ function JournalCard({ entry }) {
   let badgeBg = T.pink, badgeColor = "#fff";
   if (entry.author === "Note") { badgeBg = "#B7A9A2"; badgeColor = "#fff"; }
   else if (entry.author === "Conseil du coach") { badgeBg = "#9CB89A"; badgeColor = "#1F3D27"; }
+  // Niveau de toxicité (présent seulement pour une analyse sauvegardée)
+  const lvl = entry.level && T.levels[entry.level] ? T.levels[entry.level] : null;
   return (
     <div style={{ position: "relative", background: T.white, borderRadius: 18, padding: "22px 20px 20px",
       marginBottom: 24, boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
       <div style={{ position: "absolute", top: -12, right: -4, background: badgeBg, color: badgeColor,
         padding: "8px 16px", borderRadius: 12, fontSize: 15, fontWeight: 600 }}>{entry.author}</div>
-      <p style={{ margin: "0 0 12px", fontSize: 13.5, color: "#9C5B4E", fontWeight: 500 }}>{entry.date}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px", flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontSize: 13.5, color: "#9C5B4E", fontWeight: 500 }}>{entry.date}</p>
+        {lvl && (
+          <span style={{ background: lvl.bg, color: lvl.text, fontSize: 12.5, fontWeight: 700,
+            padding: "3px 10px", borderRadius: 999 }}>{lvl.label}</span>
+        )}
+      </div>
       <p style={{ margin: "0 0 16px", fontSize: 17, lineHeight: 1.45, color: T.text }}>{entry.message}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {entry.tags.map((t, i) => <Tag key={i} level={entry.level}>{t}</Tag>)}
@@ -1007,6 +1054,51 @@ function JournalScreen({ entries, onAddNote }) {
       <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24 }}>
         Chaque note est datée et sécurisée, pour suivre votre évolution.
       </p>
+    </div>
+  );
+}
+
+// ============================================================
+//  Code PIN du journal — le code n'est jamais stocké en clair :
+//  on garde seulement une empreinte. Déverrouillage valable
+//  jusqu'à la fermeture / rechargement de l'app.
+// ============================================================
+function pinHash(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return "p" + h.toString(36);
+}
+
+function PinLockScreen({ onUnlock, onForgot }) {
+  const [pin, setPin] = useState("");
+  const [err, setErr] = useState(false);
+  function tryPin(v) {
+    setPin(v); setErr(false);
+    if (v.length === 4) {
+      if (onUnlock(v)) return;
+      setErr(true); setPin("");
+    }
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "14vh", textAlign: "center" }}>
+      <span style={{ width: 72, height: 72, borderRadius: 22, background: T.pink, display: "flex",
+        alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+        <Lock size={32} color="#fff" strokeWidth={2} />
+      </span>
+      <h1 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "0 0 6px" }}>Journal verrouillé</h1>
+      <p style={{ fontSize: 14.5, color: T.textSoft, margin: "0 0 22px", maxWidth: 260, lineHeight: 1.45 }}>
+        Entre ton code à 4 chiffres pour accéder à ton journal.
+      </p>
+      <input value={pin} onChange={e => tryPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+        type="password" inputMode="numeric" autoFocus placeholder="••••"
+        style={{ width: 150, textAlign: "center", fontSize: 28, letterSpacing: 12, background: T.white,
+          border: err ? "1.5px solid #D06A70" : "none", borderRadius: 14, padding: "14px 0",
+          fontFamily: font, outline: "none", boxSizing: "border-box" }} />
+      {err && <p style={{ fontSize: 13.5, color: "#B42318", margin: "10px 0 0", fontWeight: 600 }}>Code incorrect, réessaie.</p>}
+      <button onClick={onForgot} style={{ marginTop: 26, background: "transparent", border: "none",
+        color: T.textSoft, fontSize: 13.5, fontFamily: font, cursor: "pointer", textDecoration: "underline" }}>
+        Code oublié ?
+      </button>
     </div>
   );
 }
@@ -1096,9 +1188,9 @@ function EmergencyButtons() {
 // ============================================================
 //  Screen: Coach IA
 // ============================================================
-function CoachScreen({ onAddToJournal }) {
+function CoachScreen({ onAddToJournal, journal }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", text: "Clarisé est à ton écoute. Pose tes questions et découvre des pistes concrètes pour mieux comprendre la situation." },
+    { role: "assistant", text: "Bonjour, je suis Clarisse. Je suis là pour t'écouter. Raconte-moi ce qui se passe, et prends tout le temps qu'il te faut." },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1129,10 +1221,17 @@ function CoachScreen({ onAddToJournal }) {
     try {
       // On envoie l'historique au serveur Clarisé, qui ajoute le prompt du coach
       // et la clé secrète, puis interroge l'IA d'Infomaniak/Euria.
+      // On joint aussi les notes récentes du journal, pour que Clarisse puisse
+      // en tenir compte (ex. messages passés d'une même personne).
       const apiMsgs = next.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.text }));
+      const journalNotes = (journal || []).slice(0, 10).map(e => {
+        const lvl = e.level && T.levels[e.level] ? ` (niveau : ${T.levels[e.level].label})` : "";
+        const tags = e.tags && e.tags.length ? ` [${e.tags.join(", ")}]` : "";
+        return `- ${e.date} — ${e.author}${lvl} : "${e.message}"${tags}`;
+      }).join("\n");
       const res = await fetch(`${BACKEND_URL}/api/coach`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMsgs }),
+        body: JSON.stringify({ messages: apiMsgs, journalNotes }),
       });
       if (!res.ok) throw new Error("coach indisponible");
       const data = await res.json();
@@ -1150,7 +1249,7 @@ function CoachScreen({ onAddToJournal }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Header title="Coach Clarisé" sub="Posez vos questions et obtenez du soutien" />
+      <Header title="Clarisse" sub="Ton espace d'écoute et de soutien" />
       <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-start" : "flex-end", marginBottom: 14 }}>
@@ -1164,10 +1263,10 @@ function CoachScreen({ onAddToJournal }) {
             {m.addable && (
               <button onClick={() => addToJournal(i, m.text)} disabled={added[i]}
                 style={{ marginTop: 6, marginRight: 4, background: "transparent", border: "none",
-                  color: added[i] ? T.textSoft : T.pink, fontSize: 13.5, fontWeight: 600, fontFamily: font,
+                  color: added[i] ? "#3E8E63" : T.pink, fontSize: 13.5, fontWeight: 700, fontFamily: font,
                   cursor: added[i] ? "default" : "pointer", display: "flex", alignItems: "center", gap: 4 }}>
                 {added[i]
-                  ? <>✓ Ajouté au journal</>
+                  ? <><Check size={15} strokeWidth={2.5} /> Ajouté au journal</>
                   : <><Plus size={15} /> Ajouter au journal</>}
               </button>
             )}
@@ -1176,13 +1275,18 @@ function CoachScreen({ onAddToJournal }) {
         {loading && <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, color: T.textSoft, fontSize: 14, paddingRight: 8, marginBottom: 14 }}><ThinkingDots color={T.pink} /> Clarisé écrit…</div>}
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 24, alignItems: "flex-end" }}>
-        <textarea value={input} onChange={e => setInput(e.target.value)}
+        <textarea value={input}
+          onChange={e => {
+            setInput(e.target.value);
+            e.target.style.height = "auto";
+            e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
+          }}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Écrire un message à Clarisé"
+          placeholder="Écrire à Clarisse…"
           rows={1}
           style={{ flex: 1, background: T.white, border: "none", borderRadius: 16, padding: "14px 16px",
             fontSize: 15.5, color: T.text, resize: "none", boxSizing: "border-box", fontFamily: font,
-            outline: "none", maxHeight: 120 }} />
+            outline: "none", maxHeight: 160, lineHeight: 1.4, overflowY: "auto" }} />
         <button onClick={send} disabled={loading || !input.trim()}
           style={{ background: T.pink, color: "#fff", border: "none", borderRadius: 999, width: 48, height: 48,
             display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
@@ -1468,7 +1572,120 @@ function CarouselRow({ items, render }) {
   );
 }
 
-function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenAide }) {
+// ============================================================
+//  Violentomètre — d'après l'outil officiel de sensibilisation
+//  (Centre Hubertine Auclert / Région Île-de-France), réédité
+//  dans le style doux de Clarisé.
+// ============================================================
+const VIOLENTOMETRE = [
+  {
+    zone: "Profite",
+    intro: "Ta relation est saine quand l'autre…",
+    level: "ok",
+    items: [
+      "Respecte tes décisions, tes désirs et tes goûts",
+      "Accepte tes amies, tes amis et ta famille",
+      "A confiance en toi",
+      "Est content quand tu te sens épanouie",
+      "S'assure de ton accord pour ce que vous faites ensemble",
+    ],
+  },
+  {
+    zone: "Vigilance, dis stop !",
+    intro: "Sois vigilante si l'autre…",
+    level: "toxique",
+    items: [
+      "Te fait du chantage si tu refuses de faire quelque chose",
+      "Rabaisse tes opinions et tes projets",
+      "Se moque de toi en public",
+      "Est jaloux et possessif en permanence",
+      "Te manipule",
+      "Contrôle tes sorties, habits, maquillage",
+      "Fouille tes textos, mails, applis",
+      "Insiste pour que tu lui envoies des photos intimes",
+      "T'isole de ta famille et de tes proches",
+      "T'oblige à regarder des films pornos",
+    ],
+  },
+  {
+    zone: "Protège-toi, demande de l'aide",
+    intro: "Tu es en danger si l'autre…",
+    level: "dangereux",
+    items: [
+      "T'humilie et te traite de folle quand tu lui fais des reproches",
+      "« Pète les plombs » lorsque quelque chose lui déplaît",
+      "Menace de se suicider à cause de toi",
+      "Menace de diffuser des photos intimes de toi",
+      "Te pousse, te tire, te gifle, te secoue, te frappe",
+      "Te touche les parties intimes sans ton consentement",
+      "T'oblige à avoir des relations sexuelles",
+      "Te menace avec une arme",
+    ],
+  },
+];
+
+function ViolentometreScreen({ onBack }) {
+  let num = 0;
+  return (
+    <div>
+      <button onClick={onBack} style={{ background: "transparent", border: "none", color: T.pink,
+        fontSize: 15, fontWeight: 700, fontFamily: font, cursor: "pointer", padding: 0,
+        display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+        <ArrowLeft size={18} /> Retour
+      </button>
+      <Header title="Le violentomètre" sub="Un repère simple pour évaluer comment l'autre se comporte avec toi." />
+
+      {VIOLENTOMETRE.map((z, zi) => {
+        const lv = T.levels[z.level];
+        return (
+          <div key={zi} style={{ marginBottom: 24 }}>
+            <div style={{ background: lv.dot, borderRadius: "16px 16px 0 0", padding: "14px 18px" }}>
+              <p style={{ margin: 0, fontSize: 16.5, fontWeight: 800, color: "#fff" }}>{z.zone}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 13, color: "rgba(255,255,255,0.9)" }}>{z.intro}</p>
+            </div>
+            <div style={{ background: lv.bg, borderRadius: "0 0 16px 16px", padding: "6px 14px 12px" }}>
+              {z.items.map((it, ii) => {
+                num += 1;
+                return (
+                  <div key={ii} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "9px 2px",
+                    borderBottom: ii < z.items.length - 1 ? `1px solid rgba(255,255,255,0.55)` : "none" }}>
+                    <span style={{ width: 26, height: 26, borderRadius: 999, background: "#fff", color: lv.text,
+                      fontSize: 13, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0, marginTop: 1 }}>{num}</span>
+                    <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.45, color: lv.text, fontWeight: 500 }}>{it}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{ background: T.white, borderRadius: T.radius, padding: "16px 18px", marginBottom: 16 }}>
+        <p style={{ margin: "0 0 10px", fontSize: 14.5, lineHeight: 1.5, color: T.text }}>
+          Si tu te reconnais dans la zone rouge — ou même orange — tu n'es pas seule.
+          Tu peux en parler et trouver de l'aide, gratuitement et anonymement.
+        </p>
+        {URGENCE_NUMEROS.map((u, i) => (
+          <a key={i} href={`tel:${u.tel}`}
+            style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
+              background: "#FFD8D8", color: "#B42318", border: "1px solid #F0B4B4",
+              borderRadius: 12, padding: "12px 14px", marginBottom: 8, fontSize: 14.5, fontWeight: 700,
+              fontFamily: font }}>
+            <Phone size={17} strokeWidth={2.4} /> {u.label}
+          </a>
+        ))}
+      </div>
+
+      <p style={{ fontSize: 11.5, color: T.textSoft, lineHeight: 1.4, margin: "0 0 8px" }}>
+        D'après le Violentomètre, outil de sensibilisation diffusé par le Centre Hubertine Auclert
+        et la Région Île-de-France.
+      </p>
+    </div>
+  );
+}
+
+function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenAide, onOpenViolento }) {
   return (
     <div>
       <Header title="Repérer" sub="Comprendre. Évaluer. Trouver de l'aide." />
@@ -1491,6 +1708,25 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
           <span style={{ marginTop: "auto", fontSize: 13.5, color: T.pink, fontWeight: 700 }}>Commencer ›</span>
         </button>
       )} />
+
+      {/* Violentomètre */}
+      <button onClick={onOpenViolento}
+        style={{ width: "100%", marginTop: 20, background: "#fff", border: "none", borderRadius: T.radius,
+          padding: 18, textAlign: "left", cursor: "pointer", fontFamily: font,
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 16.5, color: T.text }}>Le violentomètre</p>
+          <span style={{ fontSize: 14, color: T.pink, fontWeight: 700 }}>Découvrir ›</span>
+        </div>
+        <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
+          <span style={{ flex: 1, background: T.levels.ok.dot }} />
+          <span style={{ flex: 2, background: T.levels.toxique.dot }} />
+          <span style={{ flex: 1.6, background: T.levels.dangereux.dot }} />
+        </div>
+        <p style={{ margin: 0, fontSize: 13.5, color: T.textSoft, lineHeight: 1.4 }}>
+          Un repère simple, en trois zones, pour évaluer comment l'autre se comporte avec toi.
+        </p>
+      </button>
 
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "32px 0 4px" }}>
         <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: 0 }}>Comprendre les mécanismes</h2>
@@ -1618,7 +1854,66 @@ function InfoPage({ page, onBack }) {
   );
 }
 
-function SettingsScreen({ showHelp, setShowHelp, onBack, onReplayTutorial, journal, onExport, onClear }) {
+function PinSettings({ hasPin, onSetPin, onRemovePin }) {
+  const [open, setOpen] = useState(false);
+  const [a, setA] = useState(""); const [b, setB] = useState("");
+  const [cur, setCur] = useState(""); const [err, setErr] = useState("");
+  const inputStyle = { width: "100%", background: T.bg, border: "none", borderRadius: 10, padding: "12px 14px",
+    fontSize: 15, fontFamily: font, outline: "none", boxSizing: "border-box", marginBottom: 8, letterSpacing: 4 };
+  function reset() { setA(""); setB(""); setCur(""); setErr(""); }
+  return (
+    <div style={{ background: "#fff", borderRadius: T.radius, padding: "16px 18px", marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+      <div onClick={() => { setOpen(!open); reset(); }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+        <span style={{ fontSize: 15.5, color: T.text }}>
+          {hasPin ? "Code du journal : activé 🔒" : "Verrouiller le journal par un code"}
+        </span>
+        <ChevronRight size={18} color={T.textSoft} style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform .2s" }} />
+      </div>
+      {open && !hasPin && (
+        <div style={{ marginTop: 14 }}>
+          <p style={{ fontSize: 13, color: T.textSoft, margin: "0 0 10px", lineHeight: 1.45 }}>
+            Choisis un code à 4 chiffres. Il sera demandé pour ouvrir le journal.
+          </p>
+          <input value={a} onChange={e => { setA(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+            type="password" inputMode="numeric" placeholder="Nouveau code (4 chiffres)" style={inputStyle} />
+          <input value={b} onChange={e => { setB(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+            type="password" inputMode="numeric" placeholder="Confirme le code" style={inputStyle} />
+          {err && <p style={{ fontSize: 13, color: "#B42318", margin: "0 0 8px", fontWeight: 600 }}>{err}</p>}
+          <button onClick={() => {
+              if (a.length !== 4) { setErr("Le code doit faire 4 chiffres."); return; }
+              if (a !== b) { setErr("Les deux codes ne correspondent pas."); return; }
+              onSetPin(a); reset(); setOpen(false);
+            }}
+            style={{ width: "100%", background: T.pink, color: "#fff", border: "none", borderRadius: 12,
+              padding: "12px", fontSize: 15, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
+            Activer le code
+          </button>
+        </div>
+      )}
+      {open && hasPin && (
+        <div style={{ marginTop: 14 }}>
+          <p style={{ fontSize: 13, color: T.textSoft, margin: "0 0 10px", lineHeight: 1.45 }}>
+            Pour supprimer le code, entre d'abord ton code actuel. (Pour le changer : supprime-le, puis crée-en un nouveau.)
+          </p>
+          <input value={cur} onChange={e => { setCur(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+            type="password" inputMode="numeric" placeholder="Code actuel" style={inputStyle} />
+          {err && <p style={{ fontSize: 13, color: "#B42318", margin: "0 0 8px", fontWeight: 600 }}>{err}</p>}
+          <button onClick={() => {
+              if (!onRemovePin(cur)) { setErr("Code incorrect."); return; }
+              reset(); setOpen(false);
+            }}
+            style={{ width: "100%", background: "#fff", color: "#B42318", border: "1px solid #EBC4CD",
+              borderRadius: 12, padding: "12px", fontSize: 15, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
+            Supprimer le code
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SettingsScreen({ showHelp, setShowHelp, onBack, onReplayTutorial, journal, onExport, onClear, hasPin, onSetPin, onRemovePin }) {
   const [info, setInfo] = useState(null);   // "apropos" | "mentions" | "confidentialite" | null
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -1636,11 +1931,11 @@ function SettingsScreen({ showHelp, setShowHelp, onBack, onReplayTutorial, journ
       <StaticRow label="Revoir le tutoriel d'accueil" onClick={onReplayTutorial} />
 
       <SectionLabel>Sécurité</SectionLabel>
-      <StaticRow label="Code secret à l'ouverture" />
+      <PinSettings hasPin={hasPin} onSetPin={onSetPin} onRemovePin={onRemovePin} />
       <StaticRow label="Déverrouillage par biométrie" />
-      <StaticRow label="Mode discret (masquer l'app)" />
       <p style={{ fontSize: 12.5, color: T.textSoft, margin: "2px 2px 0", lineHeight: 1.4 }}>
-        Ces protections seront actives dans la version complète installée sur le téléphone.
+        Le bouton « Sortie » en haut de l'écran quitte immédiatement Clarisé vers une page neutre.
+        La biométrie sera disponible dans la version installée sur le téléphone.
       </p>
 
       <SectionLabel>Mes données</SectionLabel>
@@ -1743,17 +2038,19 @@ function FlagMark({ size = 50, color = "#fff" }) {
 function Onboarding({ onClose }) {
   const slides = [
     { Icon: null, titre: "Bienvenue sur Clarisé",
-      texte: "Clarisé vous aide à y voir clair dans les messages qui sèment le doute. Sans jugement, à votre rythme." },
+      texte: "Clarisé t'aide à y voir clair dans les messages qui sèment le doute. Sans jugement, à ton rythme." },
     { Icon: Search, titre: "Analyser un message",
-      texte: "Collez un message reçu. Clarisé met en évidence les signes possibles de manipulation et vous les explique simplement." },
-    { Icon: MessageCircle, titre: "Le Coach",
-      texte: "Posez vos questions au coach. Il vous aide à comprendre la situation, à poser vos limites ou à préparer une réponse." },
+      texte: "Colle un message reçu. Clarisé met en évidence les signes possibles de manipulation et te les explique simplement." },
+    { Icon: MessageCircle, titre: "Clarisse, ton écoute",
+      texte: "Clarisse est là pour t'écouter et t'aider à comprendre ce que tu vis. Elle ne te dira jamais quoi faire : elle t'accompagne, à ton rythme." },
     { Icon: NotebookPen, titre: "Le Journal",
-      texte: "Gardez une trace de vos ressentis et de vos analyses. Chaque note est datée, pour suivre l'évolution dans le temps." },
+      texte: "Garde une trace de tes ressentis et de tes analyses. Chaque note est datée et reste sur ton téléphone, pour suivre l'évolution dans le temps." },
     { Icon: Navigation, titre: "Se repérer",
       texte: "Des mini-tests pour faire le point, un glossaire des mécanismes, et des ressources d'aide en cas de besoin." },
-    { Icon: null, titre: "Vous pouvez commencer",
-      texte: "Vous retrouverez ce tutoriel à tout moment dans les Paramètres. Prenez soin de vous." },
+    { Icon: LogOut, titre: "Sortie rapide",
+      texte: "En haut de l'écran, le bouton « Sortie » quitte immédiatement Clarisé et ouvre une page neutre. Pour les moments où tu as besoin de discrétion." },
+    { Icon: null, titre: "Tu peux commencer",
+      texte: "Tu retrouveras ce tutoriel à tout moment dans les Paramètres. Prends soin de toi." },
   ];
   const [i, setI] = useState(0);
   const last = i === slides.length - 1;
@@ -1769,9 +2066,9 @@ function Onboarding({ onClose }) {
         )}
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingTop: "22vh" }}>
         <span style={{ width: 96, height: 96, borderRadius: 28, background: T.pink, display: "flex",
-          alignItems: "center", justifyContent: "center", marginBottom: 28,
+          alignItems: "center", justifyContent: "center", marginBottom: 28, flexShrink: 0,
           boxShadow: "0 8px 24px rgba(200,116,131,0.35)" }}>
           {s.Icon
             ? <s.Icon size={44} color="#fff" strokeWidth={2} />
@@ -1807,7 +2104,17 @@ export default function ClariseApp() {
   const [tab, setTab] = useState("analyser");
   const [analysing, setAnalysing] = useState(null); // result object or null
   const [saved, setSaved] = useState(false);
-  const [journal, setJournal] = useState(SEED_JOURNAL);
+  // Journal : conservé sur le téléphone (localStorage). Rien n'est envoyé sur
+  // un serveur. Au tout premier lancement, le journal démarre vide.
+  const [journal, setJournal] = useState(() => {
+    try {
+      const raw = localStorage.getItem("clarise_journal");
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("clarise_journal", JSON.stringify(journal)); } catch {}
+  }, [journal]);
   const [openQcm, setOpenQcm] = useState(null); // index of module or null
   const [qcmListOpen, setQcmListOpen] = useState(false); // full vertical list page
   const [qcmFromList, setQcmFromList] = useState(false); // came from the list (for back routing)
@@ -1815,12 +2122,45 @@ export default function ClariseApp() {
   const [mecaListOpen, setMecaListOpen] = useState(false); // full vertical list page
   const [mecaFromList, setMecaFromList] = useState(false);
   const [openAide, setOpenAide] = useState(null); // index of resource or null
+  const [violentoOpen, setViolentoOpen] = useState(false); // page violentomètre
+
+  // Code PIN du journal (empreinte stockée sur l'appareil, jamais le code en clair).
+  const [pinStored, setPinStored] = useState(() => {
+    try { return localStorage.getItem("clarise_pin") || null; } catch { return null; }
+  });
+  const [journalUnlocked, setJournalUnlocked] = useState(false);
+  function tryUnlockJournal(code) {
+    if (pinHash(code) === pinStored) { setJournalUnlocked(true); return true; }
+    return false;
+  }
+  function setJournalPin(codeOrNull) {
+    try {
+      if (codeOrNull) { localStorage.setItem("clarise_pin", pinHash(codeOrNull)); setPinStored(pinHash(codeOrNull)); setJournalUnlocked(true); }
+      else { localStorage.removeItem("clarise_pin"); setPinStored(null); }
+    } catch {}
+  }
+  function forgotPin() {
+    const ok = window.confirm(
+      "Par sécurité, réinitialiser le code effacera tout le contenu du journal.\n\nEffacer le journal et supprimer le code ?");
+    if (ok) {
+      setJournal([]);
+      setJournalPin(null);
+      setJournalUnlocked(true);
+    }
+  }
   const [showHelp, setShowHelp] = useState(true);  // afficher les textes d'aide
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Tutoriel d'accueil (onboarding). Dans la vraie app : afficher seulement à la 1re ouverture
   // (mémorisé sur l'appareil). Ici, dans le prototype, on l'affiche au démarrage et il est
   // re-consultable depuis les Paramètres.
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  // Tutoriel d'accueil : affiché uniquement à la toute première ouverture.
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return !localStorage.getItem("clarise_onboarded"); } catch { return true; }
+  });
+  function closeOnboarding() {
+    try { localStorage.setItem("clarise_onboarded", "1"); } catch {}
+    setShowOnboarding(false);
+  }
 
   // Hauteur réellement visible : quand le clavier s'ouvre sur mobile, la zone
   // visible rétrécit. On suit cette hauteur pour que la barre du bas reste
@@ -1846,7 +2186,7 @@ export default function ClariseApp() {
   // (onglet, ouverture/fermeture d'une sous-page, paramètres, analyse…).
   const contentRef = useRef(null);
   const viewKey = [tab, settingsOpen, analysing ? "a" : "", openQcm, qcmListOpen,
-    openMeca, mecaListOpen, openAide].join("|");
+    openMeca, mecaListOpen, openAide, violentoOpen].join("|");
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTo(0, 0);
   }, [viewKey]);
@@ -1878,13 +2218,18 @@ export default function ClariseApp() {
       onReplayTutorial={() => { setSettingsOpen(false); setShowOnboarding(true); }}
       journal={journal}
       onExport={() => exportJournal(journal)}
-      onClear={() => setJournal([])} />
+      onClear={() => setJournal([])}
+      hasPin={!!pinStored}
+      onSetPin={(code) => setJournalPin(code)}
+      onRemovePin={(code) => { if (pinHash(code) === pinStored) { setJournalPin(null); return true; } return false; }} />
   );
   else if (tab === "analyser") body = analysing
     ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis} saved={saved} />
     : <AnalyserScreen onResult={handleResult} />;
-  else if (tab === "journal") body = <JournalScreen entries={journal} onAddNote={addNote} />;
-  else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} />;
+  else if (tab === "journal") body = (pinStored && !journalUnlocked)
+    ? <PinLockScreen onUnlock={tryUnlockJournal} onForgot={forgotPin} />
+    : <JournalScreen entries={journal} onAddNote={addNote} />;
+  else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} journal={journal} />;
   else if (openQcm !== null) body = (
     <QcmRunner module={QCM_MODULES[openQcm]}
       onBack={() => { setOpenQcm(null); if (!qcmFromList) setQcmListOpen(false); }} />
@@ -1908,13 +2253,17 @@ export default function ClariseApp() {
     <RessourceScreen item={RESSOURCES[openAide]} backLabel="Repérer"
       onBack={() => setOpenAide(null)} />
   );
+  else if (violentoOpen) body = (
+    <ViolentometreScreen onBack={() => setViolentoOpen(false)} />
+  );
   else body = (
     <ReperScreen
       onOpenQcm={(i) => { setQcmFromList(false); setOpenQcm(i); }}
       onSeeAllQcm={() => setQcmListOpen(true)}
       onOpenMeca={(i) => { setMecaFromList(false); setOpenMeca(i); }}
       onSeeAllMeca={() => setMecaListOpen(true)}
-      onOpenAide={setOpenAide} />
+      onOpenAide={setOpenAide}
+      onOpenViolento={() => setViolentoOpen(true)} />
   );
 
   return (
@@ -1922,7 +2271,18 @@ export default function ClariseApp() {
     <div style={{ height: viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
-        {showOnboarding && <Onboarding onClose={() => setShowOnboarding(false)} />}
+        {showOnboarding && <Onboarding onClose={closeOnboarding} />}
+        {/* Sortie rapide : quitte immédiatement Clarisé vers une page neutre.
+            location.replace évite que le bouton retour ramène sur l'app. */}
+        <button
+          onClick={() => { try { window.location.replace("https://www.google.com"); } catch { window.location.href = "https://www.google.com"; } }}
+          aria-label="Sortie rapide"
+          style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: 66, zIndex: 40,
+            width: 38, height: 38, borderRadius: 999, border: "none",
+            background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", backdropFilter: "blur(4px)", color: T.pinkDark }}>
+          <LogOut size={18} strokeWidth={2.4} />
+        </button>
         {/* Bouton Paramètres (engrenage) */}
         {!settingsOpen && (
           <button onClick={() => setSettingsOpen(true)} aria-label="Paramètres"
@@ -1935,7 +2295,19 @@ export default function ClariseApp() {
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
+        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
+        {kbOpen && (
+          <button
+            onMouseDown={e => { e.preventDefault(); if (document.activeElement) document.activeElement.blur(); }}
+            onClick={() => { if (document.activeElement) document.activeElement.blur(); }}
+            aria-label="Fermer le clavier"
+            style={{ flexShrink: 0, width: "100%", background: T.white, border: "none",
+              borderTop: "1px solid " + T.pinkBorder, padding: "12px 0",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              color: T.pink, fontSize: 14.5, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
+            <ArrowDown size={17} strokeWidth={2.4} /> Fermer le clavier
+          </button>
+        )}
     </div>
     </HelpContext.Provider>
   );
