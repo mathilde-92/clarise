@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut, Tag, Award, Frown, VolumeX, Users, DoorOpen, Zap, HelpCircle, Smile, Clock, Repeat2, Layers, Quote, ThumbsUp, Crown, Hourglass, TrendingDown
 } from "lucide-react";
 
 // Adresse du serveur Clarisé (le backend qui parle à l'IA en gardant la clé secrète).
@@ -477,6 +477,162 @@ const MECANISMES = [
     def: "L'ancrage fait que la première information reçue (le « vrai » début de la relation, une promesse) sert de référence et pèse trop lourd dans le jugement.",
     effet: "On compare sans cesse au « début », en espérant retrouver cette version idéalisée.",
     exemple: "« Au début il était parfait, je sais qu'il peut redevenir comme ça. »" },
+
+  // --- Nouveaux mécanismes (taxonomie enrichie) ---
+  { cat: "Manipulation & communication", mot: "Étiquetage", icon: Tag, court: "Décréter qui tu es, pas ce que tu fais.",
+    def: "L'étiquetage consiste à coller une définition négative sur ta personne même (« tu es… »), et non sur un comportement. Sous emprise, à force de l'entendre, on finit par le croire et se définir soi-même par ce que l'autre a décidé.",
+    effet: "L'image de soi se déforme peu à peu pour épouser l'étiquette imposée.",
+    exemple: "« De toute façon, toi, t'es quelqu'un qui ment. »" },
+  { cat: "Manipulation & communication", mot: "Intermittence (chaud-froid)", icon: Repeat2, court: "Alterner tendresse et attaques.",
+    def: "L'alternance imprévisible entre gestes doux (compliments, affection) et attaques (reproches, froideur) crée confusion et dépendance. Un compliment glissé au milieu de reproches n'est pas un moment sain : il entretient l'espoir et brouille le jugement.",
+    effet: "On reste accroché·e en espérant le retour des bons moments, ce qui rend le départ plus difficile.",
+    exemple: "« Tu es insupportable… mais bon, t'es vraiment quelqu'un de bien quand même. »" },
+  { cat: "Manipulation & communication", mot: "Flatterie intéressée", icon: Award, court: "Complimenter pour mieux obtenir.",
+    def: "La flatterie intéressée utilise le compliment non pas pour faire plaisir, mais pour désarmer la vigilance et obtenir quelque chose en retour.",
+    effet: "On se sent redevable ou spécial·e, et on cède plus facilement.",
+    exemple: "« Toi tu es tellement plus compréhensive que les autres, tu peux bien me prêter cet argent. »" },
+  { cat: "Manipulation & communication", mot: "Honte", icon: Frown, court: "Créer un sentiment d'indignité.",
+    def: "Provoquer la honte vise à faire sentir à l'autre qu'il ou elle est indigne, mauvais·e ou ridicule, pour l'affaiblir et le·la contrôler.",
+    effet: "On se recroqueville, on n'ose plus s'affirmer ni demander.",
+    exemple: "« Tu n'as pas honte de te comporter comme ça ? »" },
+  { cat: "Manipulation & communication", mot: "Généralisation", icon: Repeat, court: "« Toujours », « jamais ».",
+    def: "La généralisation exagère un comportement ponctuel en le présentant comme systématique (« tu fais toujours… », « tu ne fais jamais… »).",
+    effet: "On se sent enfermé·e dans un défaut et jugé·e sur l'ensemble plutôt que sur un fait précis.",
+    exemple: "« Tu fais toujours tout de travers. »" },
+  { cat: "Manipulation & communication", mot: "Présupposé", icon: HelpCircle, court: "Glisser une accusation cachée.",
+    def: "Le présupposé insère une affirmation non prouvée dans la formulation, comme si elle était déjà admise, ce qui rend difficile de la contester.",
+    effet: "On se retrouve à devoir se défendre d'une accusation jamais posée clairement.",
+    exemple: "« Depuis que tu es devenue agressive, on ne peut plus rien te dire. »" },
+  { cat: "Manipulation & communication", mot: "Recadrage", icon: RefreshCw, court: "Redéfinir la réalité à son avantage.",
+    def: "Le recadrage réécrit le sens d'un événement pour effacer la responsabilité de son auteur (« ce n'était pas méchant, c'était de l'humour »).",
+    effet: "On finit par douter de sa propre lecture des faits.",
+    exemple: "« Ce n'était pas une insulte, c'était une blague, tu ne comprends rien. »" },
+  { cat: "Manipulation & communication", mot: "Confusion", icon: Layers, court: "Multiplier les versions pour désorienter.",
+    def: "La confusion accumule contradictions, demi-vérités et changements de version pour empêcher de penser clairement et de se positionner.",
+    effet: "On ne sait plus quoi croire, on perd ses repères et sa capacité à décider.",
+    exemple: "« Je n'ai jamais dit ça… enfin si, mais pas comme ça, et de toute façon c'est toi qui as commencé. »" },
+  { cat: "Manipulation & communication", mot: "Humiliation", icon: TrendingDown, court: "Rabaisser, souvent en public.",
+    def: "L'humiliation cherche à rabaisser une personne, fréquemment devant d'autres, pour l'atteindre dans sa dignité.",
+    effet: "On se sent petit·e, exposé·e, et on n'ose plus prendre sa place.",
+    exemple: "« Regarde-toi, tu es ridicule devant tout le monde. »" },
+  { cat: "Manipulation & communication", mot: "Sarcasme / mépris", icon: Quote, court: "Attaquer sous couvert d'ironie.",
+    def: "Le sarcasme déguise une attaque en trait d'humour, ce qui permet de blesser tout en niant l'intention (« c'était pour rire »).",
+    effet: "On encaisse la pique sans pouvoir vraiment répondre, sous peine de « ne pas avoir d'humour ».",
+    exemple: "« Bravo, encore une idée de génie de ta part… »" },
+  { cat: "Manipulation & communication", mot: "Ferrage", icon: Clock, court: "Resserrer le contrôle une fois attaché·e.",
+    def: "Le ferrage désigne le resserrement progressif du contrôle une fois l'attachement installé : les exigences augmentent petit à petit.",
+    effet: "On accepte peu à peu ce qu'on aurait refusé au début, sans voir la ligne se déplacer.",
+    exemple: "« Maintenant qu'on est ensemble, envoie-moi ta localisation en permanence. »" },
+
+  // --- Leviers d'influence (Cialdini) ---
+  { cat: "Leviers d'influence", mot: "Réciprocité", icon: RefreshCw, court: "Se sentir obligé·e de rendre.",
+    def: "Le principe de réciprocité fait qu'on se sent redevable après avoir reçu un cadeau, une faveur ou une confidence — même non sollicités.",
+    effet: "On dit oui par obligation ressentie plutôt que par choix.",
+    exemple: "« Je t'ai payé le restaurant, tu peux bien me rendre ce service. »" },
+  { cat: "Leviers d'influence", mot: "Preuve sociale", icon: Users, court: "Suivre ce que fait la majorité.",
+    def: "La preuve sociale pousse à s'aligner sur ce que « tout le monde » ferait ou penserait, surtout dans le doute.",
+    effet: "On doute de son propre ressenti face à une prétendue majorité.",
+    exemple: "« Tout le monde trouve que tu exagères. »" },
+  { cat: "Leviers d'influence", mot: "Autorité", icon: Crown, court: "Obéir à une figure de pouvoir.",
+    def: "Le principe d'autorité fait céder plus facilement face à quelqu'un qui affiche expertise, statut ou position de pouvoir, réels ou prétendus.",
+    effet: "On s'incline sans vérifier, par respect ou crainte de l'autorité.",
+    exemple: "« Je suis ton père, tu me dois le respect quoi qu'il arrive. »" },
+  { cat: "Leviers d'influence", mot: "Rareté / peur de perdre", icon: Hourglass, court: "Créer l'urgence de ne pas rater.",
+    def: "La rareté donne de la valeur à ce qui est présenté comme rare ou sur le point de disparaître, et active la peur de perdre.",
+    effet: "On agit dans la précipitation pour ne pas « rater sa chance ».",
+    exemple: "« C'est ta dernière chance, après je m'en vais pour de bon. »" },
+  { cat: "Leviers d'influence", mot: "Pied dans la porte", icon: DoorOpen, court: "Petite demande d'abord, grande ensuite.",
+    def: "La technique du pied dans la porte obtient un accord sur une petite demande facile à accepter, puis élargit progressivement jusqu'à une demande qu'on aurait refusée d'emblée.",
+    effet: "On se retrouve engagé·e bien plus loin qu'on ne l'aurait voulu, par souci de cohérence.",
+    exemple: "« On va juste boire un verre pour en parler » → « on serait mieux chez moi »…" },
+  { cat: "Leviers d'influence", mot: "Sympathie", icon: Smile, court: "On dit oui à qui nous plaît.",
+    def: "On accède plus facilement aux demandes des personnes qui nous plaisent, nous ressemblent ou nous complimentent.",
+    effet: "Le lien de sympathie abaisse la vigilance.",
+    exemple: "« On se ressemble tellement, toi et moi, tu vas bien me comprendre. »" },
+
+  // --- Biais & conditionnement ---
+  { cat: "Biais cognitifs", mot: "Aversion à la perte", icon: Hourglass, court: "La peur de perdre pèse très lourd.",
+    def: "L'aversion à la perte fait que la crainte de perdre quelque chose pèse plus lourd, dans nos décisions, que l'envie de gagner l'équivalent.",
+    effet: "On reste ou on cède pour ne pas perdre ce qu'on a déjà investi.",
+    exemple: "« Si tu pars, tu perdras tout ce qu'on a construit ensemble. »" },
+  { cat: "Biais cognitifs", mot: "Cadrage", icon: RefreshCw, court: "La formulation change la décision.",
+    def: "Le cadrage présente la même réalité sous un angle choisi pour orienter la décision (« ce n'est pas du contrôle, c'est de l'attention »).",
+    effet: "On accepte une chose formulée joliment qu'on aurait refusée dite crûment.",
+    exemple: "« Ce n'est pas de la jalousie, c'est parce que je t'aime. »" },
+  { cat: "Biais cognitifs", mot: "Habituation", icon: Repeat, court: "L'anormal devient « normal ».",
+    def: "À force de répétition, des comportements anormaux finissent par sembler ordinaires : le seuil de tolérance monte sans qu'on s'en aperçoive.",
+    effet: "On minimise des faits graves parce qu'ils sont devenus habituels.",
+    exemple: "« C'est rien, on se dispute comme ça tous les jours, c'est normal. »" },
+
+  // --- Mécanismes ajoutés (taxonomie 40) ---
+  { cat: "Biais cognitifs", mot: "Coûts irrécupérables", icon: Hourglass, court: "Rester à cause de ce qu'on a investi.",
+    def: "Le biais des coûts irrécupérables pousse à continuer une relation parce qu'on y a déjà consacré beaucoup de temps, d'énergie ou d'amour — comme si partir « gâchait » cet investissement.",
+    effet: "On reste pour ne pas « avoir tout fait pour rien », même quand la relation fait souffrir.",
+    exemple: "« Après dix ans ensemble, je ne peux pas partir maintenant. »" },
+  { cat: "Biais cognitifs", mot: "Illusion de contrôle", icon: Target, court: "Croire qu'être parfaite fera changer l'autre.",
+    def: "L'illusion de contrôle fait croire que si l'on se comporte parfaitement, l'autre finira par changer ou par arrêter ses comportements blessants.",
+    effet: "On s'épuise à « bien faire », en portant une responsabilité qui n'est pas la sienne.",
+    exemple: "« Si je fais tout ce qu'il me demande bien comme il faut, il arrêtera. »" },
+  { cat: "Mécanismes psychologiques", mot: "Normalisation progressive", icon: ArrowDown, court: "S'habituer peu à peu à l'inacceptable.",
+    def: "La normalisation progressive fait accepter, petit à petit, des comportements qu'on aurait refusés au début. Le seuil de ce qui est « tolérable » se déplace sans qu'on le voie.",
+    effet: "Des faits graves finissent par paraître ordinaires.",
+    exemple: "Les insultes, d'abord choquantes, deviennent « juste sa façon de parler »." },
+  { cat: "Manipulation & communication", mot: "Porte-au-nez", icon: DoorOpen, court: "Grosse demande, puis une plus petite.",
+    def: "La technique de la porte-au-nez consiste à formuler une demande énorme (vouée au refus), pour qu'ensuite une demande plus petite paraisse raisonnable, presque un soulagement.",
+    effet: "On accepte la seconde demande par contraste, sans la remettre en question.",
+    exemple: "« Tu ne veux pas emménager ? Bon, alors laisse-moi au moins une clé de chez toi. »" },
+  { cat: "Manipulation & communication", mot: "Amorçage", icon: RefreshCw, court: "Changer les règles après l'accord.",
+    def: "L'amorçage (low-ball) consiste à obtenir un accord sur des conditions attirantes, puis à en changer les termes une fois l'engagement pris.",
+    effet: "On se sent tenu·e par l'accord initial et on accepte des conditions qu'on aurait refusées d'emblée.",
+    exemple: "« Tu avais dit oui pour ce week-end… en fait ce sera toute la semaine chez mes parents. »" },
+  { cat: "Manipulation & communication", mot: "Double contrainte", icon: ArrowLeftRight, court: "Quoi que tu fasses, tu as tort.",
+    def: "La double contrainte enferme dans deux options qui mènent toutes deux à un reproche : il n'existe aucune « bonne » réponse possible.",
+    effet: "On se sent paralysé·e et coupable quel que soit son choix.",
+    exemple: "« Si tu pars, tu m'abandonnes ; si tu restes, tu m'étouffes. »" },
+  { cat: "Manipulation & communication", mot: "Future faking", icon: Sparkles, court: "Promettre un avenir pour retenir.",
+    def: "Le future faking consiste à faire miroiter des promesses d'avenir (mariage, enfant, changement) sans intention réelle de les tenir, pour apaiser ou retenir la personne.",
+    effet: "On reste dans l'espoir d'un futur qui ne vient jamais.",
+    exemple: "« On se mariera l'an prochain, je te le promets, ne pars pas. »" },
+  { cat: "Manipulation & communication", mot: "Hoovering", icon: RefreshCw, court: "Faire revenir après une rupture.",
+    def: "Le hoovering (de « Hoover », aspirateur) désigne les tentatives de « ré-aspirer » la personne après une séparation, par de grandes excuses, des promesses ou des cadeaux.",
+    effet: "On retombe dans le cycle, en croyant que cette fois sera différente.",
+    exemple: "Après la rupture : « J'ai compris mes erreurs, je ne peux pas vivre sans toi. »" },
+  { cat: "Manipulation & communication", mot: "Stonewalling", icon: VolumeX, court: "Refuser toute discussion.",
+    def: "Le stonewalling (mur du silence) consiste à refuser tout échange : quitter la pièce, se fermer, ignorer, pour empêcher toute résolution du conflit.",
+    effet: "On reste seul·e avec le problème, sans jamais pouvoir en parler.",
+    exemple: "Dès qu'un sujet gêne, l'autre quitte la conversation ou fait comme s'il n'entendait pas." },
+  { cat: "Manipulation & communication", mot: "Campagne de diffamation", icon: Users, court: "Salir ton image auprès des autres.",
+    def: "La campagne de diffamation vise à dégrader l'image de la personne auprès de l'entourage, souvent en la faisant passer pour instable, menteuse ou « folle », pour l'isoler et se protéger.",
+    effet: "On se retrouve isolé·e, et on n'ose plus se confier de peur de ne pas être cru·e.",
+    exemple: "Il raconte à tout le monde qu'« elle est instable et qu'elle invente tout »." },
+  { cat: "Mécanismes psychologiques", mot: "Rationalisation", icon: Brain, court: "Excuser l'autre pour tenir.",
+    def: "La rationalisation consiste à trouver des explications rassurantes aux comportements blessants de l'autre, pour rendre la situation supportable.",
+    effet: "On excuse l'inexcusable et on reporte le moment de se protéger.",
+    exemple: "« Il est stressé en ce moment, ça ira mieux quand il sera moins stressé, je comprends qu'il réagisse comme ça vu ce qu'il vit. »" },
+  { cat: "Mécanismes psychologiques", mot: "Dissociation", icon: EyeOff, court: "Se couper de ses émotions.",
+    def: "La dissociation est un mécanisme de survie : face à un stress intense, l'esprit se « déconnecte » des émotions ou de la scène, comme pour se protéger.",
+    effet: "On se sent spectateur·rice de sa propre vie, anesthésié·e.",
+    exemple: "Pendant une dispute violente, se sentir « à côté », comme si ça arrivait à quelqu'un d'autre." },
+  { cat: "Mécanismes psychologiques", mot: "Identification à l'agresseur", icon: User, court: "Adopter le point de vue de l'autre.",
+    def: "L'identification à l'agresseur amène la personne à épouser le regard de celui qui la blesse, jusqu'à défendre ses comportements.",
+    effet: "On justifie l'autre et on retourne la faute contre soi.",
+    exemple: "« Au fond il a raison de s'énerver, c'est moi qui le pousse à bout. »" },
+  { cat: "Mécanismes psychologiques", mot: "Sidération", icon: AlertTriangle, court: "Être figé·e face au choc.",
+    def: "La sidération est un blocage psychologique face à un choc : le cerveau, submergé, empêche momentanément de réagir, de parler ou de fuir.",
+    effet: "On « n'a rien pu dire ni faire » sur le moment — ce n'est pas de la faiblesse, c'est une réaction de survie.",
+    exemple: "Rester figée, incapable de répondre, pendant une scène violente." },
+  { cat: "Biais cognitifs", mot: "Conformisme", icon: Users, court: "Suivre le groupe.",
+    def: "Le conformisme pousse à s'aligner sur le groupe, à ne pas contredire, surtout quand l'entourage soutient la personne qui manipule.",
+    effet: "On tait ses doutes et on se sent seul·e à voir le problème.",
+    exemple: "Ne pas oser critiquer devant les amis communs qui « l'adorent »." },
+  { cat: "Biais cognitifs", mot: "Croyance en un monde juste", icon: Scale, court: "Penser que chacun mérite son sort.",
+    def: "Ce biais fait croire que le monde est juste et que, si quelqu'un souffre, c'est qu'il ou elle l'a « mérité » — ce qui conduit à blâmer les victimes.",
+    effet: "On se blâme soi-même pour ce qu'on subit.",
+    exemple: "« Si ça m'arrive, c'est peut-être que je l'ai cherché. »" },
+  { cat: "Biais cognitifs", mot: "Erreur d'attribution", icon: User, court: "Juger l'être, pas le contexte.",
+    def: "L'erreur fondamentale d'attribution consiste à expliquer les actes d'une personne par sa personnalité plutôt que par la situation (« elle est faible » plutôt que « elle est prise dans une emprise »).",
+    effet: "On juge durement les victimes au lieu de comprendre le mécanisme qui les piège.",
+    exemple: "« Si elle reste, c'est qu'elle est faible. » (alors que l'emprise explique tout autrement)" },
 ];
 
 // Retrouve l'icône d'un mécanisme à partir de son nom (pour les cartes d'analyse générées par l'IA)
@@ -1006,7 +1162,9 @@ function JournalCard({ entry }) {
             padding: "3px 10px", borderRadius: 999 }}>{lvl.label}</span>
         )}
       </div>
-      <p style={{ margin: "0 0 16px", fontSize: 17, lineHeight: 1.45, color: T.text }}>{entry.message}</p>
+      {entry.author === "Conseil du coach"
+        ? <div style={{ margin: "0 0 16px", fontSize: 16, lineHeight: 1.5, color: T.text }}><RichText text={entry.message} /></div>
+        : <p style={{ margin: "0 0 16px", fontSize: 17, lineHeight: 1.45, color: T.text, whiteSpace: "pre-wrap" }}>{entry.message}</p>}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {entry.tags.map((t, i) => <Tag key={i} level={entry.level}>{t}</Tag>)}
       </div>
@@ -1249,7 +1407,7 @@ function CoachScreen({ onAddToJournal, journal }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <Header title="Clarisse" sub="Ton espace d'écoute et de soutien" />
+      <Header title="Clarisse" sub="Clarisse, à ton écoute" />
       <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", paddingRight: 2 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-start" : "flex-end", marginBottom: 14 }}>
@@ -1272,7 +1430,7 @@ function CoachScreen({ onAddToJournal, journal }) {
             )}
           </div>
         ))}
-        {loading && <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, color: T.textSoft, fontSize: 14, paddingRight: 8, marginBottom: 14 }}><ThinkingDots color={T.pink} /> Clarisé écrit…</div>}
+        {loading && <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, color: T.textSoft, fontSize: 14, paddingRight: 8, marginBottom: 14 }}><ThinkingDots color={T.pink} /> Clarisse écrit…</div>}
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 24, alignItems: "flex-end" }}>
         <textarea value={input}
@@ -1280,6 +1438,14 @@ function CoachScreen({ onAddToJournal, journal }) {
             setInput(e.target.value);
             e.target.style.height = "auto";
             e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
+          }}
+          onFocus={e => {
+            // Quand le clavier s'ouvre, on ramène la zone de saisie et les
+            // derniers messages dans la partie visible (évite l'écran vide).
+            setTimeout(() => {
+              try { e.target.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
+              if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }, 300);
           }}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="Écrire à Clarisse…"
@@ -1837,6 +2003,27 @@ const INFO_PAGES = {
       "(Texte de base — à faire valider avant publication.)",
     ],
   },
+  sources: {
+    titre: "Sources & inspirations",
+    corps: [
+      "Clarisé s'appuie sur des travaux de recherche et de clinique en psychologie. Cette page rend hommage aux autrices et auteurs dont les concepts nourrissent l'application.",
+      "• Gaslighting — terme né de la pièce « Gas Light » de Patrick Hamilton (1938), puis conceptualisé en psychologie, notamment par la Dre Robin Stern (« The Gaslight Effect », 2007).",
+      "• Triangle dramatique (victime · persécuteur · sauveur) — Stephen Karpman, dans le cadre de l'Analyse Transactionnelle d'Eric Berne (1968).",
+      "• Communication Non Violente (CNV) — Marshall B. Rosenberg, qui a mis au centre les émotions et les besoins.",
+      "• Les principes de l'influence — Robert Cialdini (« Influence et manipulation »).",
+      "• Les biais cognitifs et les deux systèmes de pensée — Daniel Kahneman (« Système 1 / Système 2 »).",
+      "• Les travaux d'Anne-Clotilde Ziegler sur l'emprise et les mécanismes relationnels.",
+      "• La littérature clinique sur l'emprise, le lien traumatique et la séduction narcissique (notamment P.-C. Racamier).",
+      "Ouvrages de référence :",
+      "• Robert B. Cialdini, « Influence : The Psychology of Persuasion ».",
+      "• Daniel Kahneman, « Thinking, Fast and Slow » (Système 1 / Système 2).",
+      "• Robin Stern, « The Gaslight Effect » (2007).",
+      "• Patricia Evans, « The Verbally Abusive Relationship » (2010).",
+      "• Lenore E. Walker, « The Battered Woman » (1979) — le cycle de la violence.",
+      "• Amir Levine & Rachel Heller, « Attached » (2010) — théorie de l'attachement.",
+      "Clarisé vulgarise ces travaux avec des mots simples, sans les trahir. Toute erreur d'interprétation relèverait de l'application, non de ces autrices et auteurs. Cette liste sera complétée et précisée au fil des versions.",
+    ],
+  },
 };
 
 function InfoPage({ page, onBack }) {
@@ -1966,6 +2153,7 @@ function SettingsScreen({ showHelp, setShowHelp, onBack, onReplayTutorial, journ
       <StaticRow label="Confidentialité" onClick={() => setInfo("confidentialite")} />
       <StaticRow label="Mentions légales" onClick={() => setInfo("mentions")} />
       <StaticRow label="À propos de Clarisé" onClick={() => setInfo("apropos")} />
+      <StaticRow label="Sources & inspirations" onClick={() => setInfo("sources")} />
 
       <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", margin: "18px 0 4px", lineHeight: 1.4 }}>
         Clarisé — prototype. Certaines fonctions deviendront actives dans la version publiée.
@@ -2041,7 +2229,7 @@ function Onboarding({ onClose }) {
       texte: "Clarisé t'aide à y voir clair dans les messages qui sèment le doute. Sans jugement, à ton rythme." },
     { Icon: Search, titre: "Analyser un message",
       texte: "Colle un message reçu. Clarisé met en évidence les signes possibles de manipulation et te les explique simplement." },
-    { Icon: MessageCircle, titre: "Clarisse, ton écoute",
+    { Icon: MessageCircle, titre: "Clarisse, à ton écoute",
       texte: "Clarisse est là pour t'écouter et t'aider à comprendre ce que tu vis. Elle ne te dira jamais quoi faire : elle t'accompagne, à ton rythme." },
     { Icon: NotebookPen, titre: "Le Journal",
       texte: "Garde une trace de tes ressentis et de tes analyses. Chaque note est datée et reste sur ton téléphone, pour suivre l'évolution dans le temps." },
@@ -2208,7 +2396,10 @@ export default function ClariseApp() {
     setJournal([{ id: Date.now(), author: "Note", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] }, ...journal]);
   }
   function addCoachNote(text) {
-    setJournal([{ id: Date.now(), author: "Conseil du coach", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] }, ...journal]);
+    // On garde la mise en forme (gras **…**, puces "- ") : elle sera rendue
+    // proprement par RichText dans le journal. On retire juste la balise technique.
+    const clean = String(text).replace(/\[URGENCE\]/g, "").replace(/\n{3,}/g, "\n\n").trim();
+    setJournal([{ id: Date.now(), author: "Conseil du coach", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: clean, tags: [] }, ...journal]);
   }
 
   const isCoach = tab === "coach" && !settingsOpen;
