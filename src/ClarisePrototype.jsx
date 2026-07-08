@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut, Tag, Award, Frown, VolumeX, Users, DoorOpen, Zap, HelpCircle, Smile, Clock, Repeat2, Layers, Quote, ThumbsUp, Crown, Hourglass, TrendingDown
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut, Tag as TagIcon, Award, Frown, VolumeX, Users, DoorOpen, Zap, HelpCircle, Smile, Clock, Repeat2, Layers, Quote, ThumbsUp, Crown, Hourglass, TrendingDown
 } from "lucide-react";
 
 // Adresse du serveur Clarisé (le backend qui parle à l'IA en gardant la clé secrète).
@@ -479,7 +479,7 @@ const MECANISMES = [
     exemple: "« Au début il était parfait, je sais qu'il peut redevenir comme ça. »" },
 
   // --- Nouveaux mécanismes (taxonomie enrichie) ---
-  { cat: "Manipulation & communication", mot: "Étiquetage", icon: Tag, court: "Décréter qui tu es, pas ce que tu fais.",
+  { cat: "Manipulation & communication", mot: "Étiquetage", icon: TagIcon, court: "Décréter qui tu es, pas ce que tu fais.",
     def: "L'étiquetage consiste à coller une définition négative sur ta personne même (« tu es… »), et non sur un comportement. Sous emprise, à force de l'entendre, on finit par le croire et se définir soi-même par ce que l'autre a décidé.",
     effet: "L'image de soi se déforme peu à peu pour épouser l'étiquette imposée.",
     exemple: "« De toute façon, toi, t'es quelqu'un qui ment. »" },
