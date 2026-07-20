@@ -425,10 +425,6 @@ const MECANISMES = [
     def: "Le silence punitif (ou « traitement par le silence ») consiste à ignorer délibérément une personne pour la punir ou la contraindre.",
     effet: "On ressent un rejet anxiogène et on cherche à apaiser l'autre à tout prix.",
     exemple: "Ne plus adresser la parole pendant des jours après un désaccord." },
-  { cat: "Emprise & pouvoir", mot: "Dépendance affective", icon: Heart, court: "Un besoin qui enferme.",
-    def: "La dépendance affective est un besoin intense de l'autre et de son approbation, qui peut être entretenu et exploité dans une relation déséquilibrée.",
-    effet: "On accepte l'inacceptable par peur du manque ou de l'abandon.",
-    exemple: "Rester malgré la souffrance, parce que l'idée de la séparation paraît insupportable." },
 
   // --- Effets sur soi & santé mentale ---
   { cat: "Effets sur soi & santé mentale", mot: "Dissonance cognitive", icon: Brain, court: "Quand deux vérités s'opposent.",
@@ -877,13 +873,13 @@ function demoAnalyze(message) {
 // ============================================================
 //  Analyse — call to Claude
 // ============================================================
-async function analyzeMessage(message, author) {
+async function analyzeMessage(message, author, relation, answers) {
   // L'app n'appelle plus l'IA directement : elle appelle le serveur Clarisé,
   // qui garde la clé secrète et interroge l'IA d'Infomaniak/Euria.
   const res = await fetch(`${BACKEND_URL}/api/analyse`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, author }),
+    body: JSON.stringify({ message, author, relation, answers }),
   });
   if (!res.ok) throw new Error("Analyse indisponible");
   return await res.json();
@@ -897,12 +893,15 @@ const MAX_MSG = 2000; // limite de caractères pour l'analyse
 function AnalyserScreen({ onResult }) {
   const [msg, setMsg] = useState("");
   const [author, setAuthor] = useState("");
+  const [relation, setRelation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null); // { titre, texte } ou null
+  const [questions, setQuestions] = useState(null); // liste de questions de contexte
+  const [answers, setAnswers] = useState(""); // réponses de la personne
 
   const tooLong = msg.length > MAX_MSG;
 
-  async function run() {
+  async function run(withAnswers) {
     // Champ vide
     if (!msg.trim()) {
       setError({
@@ -925,7 +924,7 @@ function AnalyserScreen({ onResult }) {
 
     setLoading(true);
     try {
-      const result = await analyzeMessage(msg.trim(), author.trim());
+      const result = await analyzeMessage(msg.trim(), author.trim(), relation.trim(), withAnswers || "");
       // Texte incompréhensible détecté par l'IA
       if (result && result.level === "invalide") {
         setError({
@@ -934,6 +933,12 @@ function AnalyserScreen({ onResult }) {
         });
         return;
       }
+      // L'IA a besoin de contexte : elle pose des questions avant d'analyser
+      if (result && result.level === "questions" && Array.isArray(result.questions) && result.questions.length) {
+        setQuestions({ liste: result.questions, intro: result.summary || "" });
+        return;
+      }
+      setQuestions(null);
       onResult({ message: msg.trim(), author: author.trim(), ...result });
     } catch (e) {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
@@ -987,7 +992,22 @@ function AnalyserScreen({ onResult }) {
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
-      <button onClick={run} disabled={loading || tooLong}
+
+      <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "24px 0 8px", fontWeight: 500 }}>
+        Qui est cette personne pour toi ? <span style={{ color: T.textSoft, fontWeight: 400 }}>(optionnel)</span>
+      </p>
+      <input
+        value={relation} onChange={e => setRelation(e.target.value)}
+        placeholder="ex : mon ex, on est en bons termes / mon copain, c'est tendu…"
+        style={{ width: "100%", background: T.white, border: "none", borderRadius: 12, padding: "16px 18px",
+          fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+      />
+      <p style={{ fontSize: 12.5, color: T.textSoft, marginTop: 8, lineHeight: 1.4 }}>
+        Un même message peut être tendre ou blessant selon qui l'écrit. Ce petit contexte aide Clarisé à être plus juste.
+      </p>
+
+      <button onClick={() => run()} disabled={loading || tooLong}
         onMouseDown={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
         onMouseUp={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
         onMouseLeave={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
@@ -1003,6 +1023,32 @@ function AnalyserScreen({ onResult }) {
       <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
         Cette analyse n'est pas un diagnostic, elle t'aide à prendre du recul.
       </p>
+
+      {/* Questions de contexte quand le message est ambigu */}
+      {questions && (
+        <div style={{ marginTop: 24, background: "#fff", border: `1px solid ${T.pinkSoft}`, borderRadius: T.radius, padding: "18px 18px 20px" }}>
+          <p style={{ margin: "0 0 12px", fontSize: 15, lineHeight: 1.5, color: T.text }}>
+            {questions.intro || "Pour être juste, j'ai besoin d'un peu de contexte :"}
+          </p>
+          <ul style={{ margin: "0 0 14px", paddingLeft: 20 }}>
+            {questions.liste.map((q, i) => (
+              <li key={i} style={{ marginBottom: 6, fontSize: 14.5, lineHeight: 1.45, color: T.text }}>{q}</li>
+            ))}
+          </ul>
+          <textarea value={answers} onChange={e => setAnswers(e.target.value)}
+            placeholder="Ta réponse, en quelques mots…"
+            style={{ width: "100%", minHeight: 80, background: T.bg, border: "none", borderRadius: 12,
+              padding: 14, fontSize: 15, color: T.text, resize: "none", boxSizing: "border-box",
+              fontFamily: font, outline: "none" }} />
+          <button onClick={() => { const a = answers.trim(); if (a) { setQuestions(null); run(a); } }}
+            disabled={!answers.trim() || loading}
+            style={{ width: "100%", marginTop: 12, background: answers.trim() ? T.pink : T.pinkSoft, color: "#fff",
+              border: "none", borderRadius: 12, padding: "13px", fontSize: 16, fontWeight: 700, fontFamily: font,
+              cursor: answers.trim() ? "pointer" : "default" }}>
+            {loading ? "Analyse en cours…" : "Analyser avec ce contexte"}
+          </button>
+        </div>
+      )}
 
       {/* Message d'erreur doux et clair */}
       {error && (
@@ -1354,6 +1400,7 @@ function CoachScreen({ onAddToJournal, journal }) {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState({}); // index -> true quand ajouté au journal
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   function addToJournal(i, text) {
     if (added[i]) return;
@@ -1362,6 +1409,11 @@ function CoachScreen({ onAddToJournal, journal }) {
   }
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages, loading]);
+
+  function resetInputHeight() {
+    // Ramène la zone de saisie à sa taille minimale (juste autour du placeholder).
+    if (inputRef.current) inputRef.current.style.height = "auto";
+  }
 
   async function send() {
     const text = input.trim();
@@ -1372,10 +1424,12 @@ function CoachScreen({ onAddToJournal, journal }) {
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       setMessages([...next, { role: "assistant", text: "Je n'ai pas de connexion Internet pour le moment. L'application fonctionne bien, mais le coach a besoin d'être en ligne pour vous répondre. Vérifiez votre connexion, puis réessayez." }]);
       setInput("");
+      resetInputHeight();
       return;
     }
 
     setMessages(next); setInput(""); setLoading(true);
+    resetInputHeight();
     try {
       // On envoie l'historique au serveur Clarisé, qui ajoute le prompt du coach
       // et la clé secrète, puis interroge l'IA d'Infomaniak/Euria.
@@ -1433,7 +1487,7 @@ function CoachScreen({ onAddToJournal, journal }) {
         {loading && <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, color: T.textSoft, fontSize: 14, paddingRight: 8, marginBottom: 14 }}><ThinkingDots color={T.pink} /> Clarisse écrit…</div>}
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 24, alignItems: "flex-end" }}>
-        <textarea value={input}
+        <textarea value={input} ref={inputRef}
           onChange={e => {
             setInput(e.target.value);
             e.target.style.height = "auto";
