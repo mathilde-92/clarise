@@ -19,9 +19,11 @@ const HelpContext = createContext(true);
 // ---- Design tokens (gamme rose framboise dérivée de #C87483) ----
 const T = {
   bg: "#FBEDF0",        // fond global, rose très clair (framboise pâle)
+  band: "#F5DEE3",      // bandeau de mise en valeur, un cran plus soutenu que le fond
   text: "#3A3A3A",
   textSoft: "#6B6B6B",
   white: "#FFF6F8",     // cartes / zones blanches légèrement rosées
+  inputBg: "#FFFFFF",   // fond des zones de saisie (textarea/input) : blanc pur, plus contrasté
   pink: "#C87483",      // couleur principale
   pinkDark: "#A85667",  // appui / pressé
   pinkSoft: "#E3A9B4",  // version douce (désactivé, contours)
@@ -632,11 +634,33 @@ const MECANISMES = [
 ];
 
 // Retrouve l'icône d'un mécanisme à partir de son nom (pour les cartes d'analyse générées par l'IA)
+// Trouve le mécanisme le plus proche d'une étiquette, même si l'ordre des mots
+// diffère ou si un mot a une terminaison différente (ex. "Punition silencieuse"
+// doit retrouver "Silence punitif" : les deux partagent "punit…" et "silenc…").
+function findMecanisme(label) {
+  if (!label) return null;
+  const n = label.toLowerCase().trim();
+  // 1) correspondance exacte
+  let hit = MECANISMES.find(m => m.mot.toLowerCase() === n);
+  if (hit) return hit;
+  // 2) l'une contient l'autre (ancien comportement, gardé)
+  hit = MECANISMES.find(m => n.includes(m.mot.toLowerCase()) || m.mot.toLowerCase().includes(n));
+  if (hit) return hit;
+  // 3) recoupement de racines de mots (ordre indifférent, tolère singulier/pluriel/adjectif)
+  const stem = w => w.length > 4 ? w.slice(0, 5) : w; // racine grossière
+  const wordsOf = s => s.toLowerCase().replace(/[()]/g, " ").split(/[\s'’\-]+/).filter(w => w.length > 3);
+  const nStems = new Set(wordsOf(n).map(stem));
+  let best = null, bestScore = 0;
+  for (const m of MECANISMES) {
+    const mStems = wordsOf(m.mot).map(stem);
+    const score = mStems.filter(s => nStems.has(s)).length;
+    if (score > bestScore) { bestScore = score; best = m; }
+  }
+  return bestScore > 0 ? best : null;
+}
+
 function iconForCategory(name) {
-  if (!name) return AlertTriangle;
-  const n = name.toLowerCase().trim();
-  const hit = MECANISMES.find(m => m.mot.toLowerCase() === n)
-           || MECANISMES.find(m => n.includes(m.mot.toLowerCase()) || m.mot.toLowerCase().includes(n));
+  const hit = findMecanisme(name);
   return hit ? hit.icon : AlertTriangle;
 }
 
@@ -701,7 +725,7 @@ function telHref(num) { return "tel:" + num.replace(/\s/g, ""); }
 function Header({ title, sub }) {
   const showHelp = useContext(HelpContext);
   return (
-    <div style={{ marginBottom: 24 }}>
+    <div style={{ marginBottom: 34 }}>
       <h1 style={{ fontSize: 26, fontWeight: 700, color: "#5A2A24", margin: 0, letterSpacing: -0.3 }}>{title}</h1>
       {sub && showHelp && <p style={{ fontSize: 14.5, color: T.textSoft, margin: "8px 0 0", lineHeight: 1.4 }}>{sub}</p>}
     </div>
@@ -721,10 +745,7 @@ function LevelBadge({ level }) {
 
 // Retrouve la définition courte d'un mécanisme à partir de son nom (pour les tags du journal)
 function defForLabel(label) {
-  if (!label) return null;
-  const n = label.toLowerCase().trim();
-  const hit = MECANISMES.find(m => m.mot.toLowerCase() === n)
-           || MECANISMES.find(m => n.includes(m.mot.toLowerCase()) || m.mot.toLowerCase().includes(n));
+  const hit = findMecanisme(label);
   return hit ? hit.def : null;
 }
 
@@ -962,19 +983,24 @@ function AnalyserScreen({ onResult }) {
     <div>
       <Header title="Analyser un message" sub="Colle un message pour détecter s'il contient des signes de manipulation" />
 
-      <textarea
-        value={msg} onChange={e => { setMsg(e.target.value); if (error) setError(null); }}
-        placeholder={'Ex : "Si tu ne comprends pas que c\'est de ta faute, tu vas avoir des problèmes…"'}
-        style={{ width: "100%", minHeight: 180, background: T.white,
-          border: tooLong ? "1.5px solid #D06A70" : "none", borderRadius: 12,
-          padding: 20, fontSize: 16.5, lineHeight: 1.45, color: T.text, resize: "none", boxSizing: "border-box",
-          fontFamily: font, outline: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-      />
-      {/* compteur de caractères */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-        <span style={{ fontSize: 12.5, color: tooLong ? "#B42318" : T.textSoft, fontWeight: tooLong ? 700 : 400 }}>
-          {msg.length} / {MAX_MSG}
-        </span>
+      <div style={{ background: T.band, borderRadius: 20, padding: "18px 16px 14px", margin: "0 -4px" }}>
+        <p style={{ fontSize: 15, color: T.text, margin: "0 0 10px", fontWeight: 700 }}>
+          Message
+        </p>
+        <textarea
+          value={msg} onChange={e => { setMsg(e.target.value); if (error) setError(null); }}
+          placeholder={'Ex : "Si tu ne comprends pas que c\'est de ta faute, tu vas avoir des problèmes…"'}
+          style={{ width: "100%", minHeight: 100, background: T.inputBg,
+            border: tooLong ? "1.5px solid #D06A70" : "none", borderRadius: 12,
+            padding: 20, fontSize: 16.5, lineHeight: 1.45, color: T.text, resize: "none", boxSizing: "border-box",
+            fontFamily: font, outline: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+        />
+        {/* compteur de caractères */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <span style={{ fontSize: 12.5, color: tooLong ? "#B42318" : T.textSoft, fontWeight: tooLong ? 700 : 400 }}>
+            {msg.length} / {MAX_MSG}
+          </span>
+        </div>
       </div>
       {tooLong && (
         <p style={{ fontSize: 13, color: "#B42318", margin: "8px 0 0", lineHeight: 1.4 }}>
@@ -982,24 +1008,24 @@ function AnalyserScreen({ onResult }) {
         </p>
       )}
 
-      <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "24px 0 8px", fontWeight: 500 }}>
-        Qui t'a écrit ce message ?
+      <p style={{ fontSize: 15, color: T.text, margin: "16px 0 8px", fontWeight: 400 }}>
+        Expéditeur
       </p>
       <input
         value={author} onChange={e => setAuthor(e.target.value)}
         placeholder="ex : ta mère, Marc, ton patron…"
-        style={{ width: "100%", background: T.white, border: "none", borderRadius: 12, padding: "16px 18px",
+        style={{ width: "100%", background: T.inputBg, border: "none", borderRadius: 12, padding: "16px 18px",
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
 
-      <p style={{ textAlign: "center", fontSize: 16, color: T.text, margin: "24px 0 8px", fontWeight: 500 }}>
-        Qui est cette personne pour toi ? <span style={{ color: T.textSoft, fontWeight: 400 }}>(optionnel)</span>
+      <p style={{ fontSize: 13.5, color: T.textSoft, margin: "16px 0 8px", fontWeight: 400 }}>
+        Votre relation avec l'expéditeur <span style={{ fontStyle: "italic" }}>(optionnel)</span>
       </p>
       <input
         value={relation} onChange={e => setRelation(e.target.value)}
         placeholder="ex : mon ex, on est en bons termes / mon copain, c'est tendu…"
-        style={{ width: "100%", background: T.white, border: "none", borderRadius: 12, padding: "16px 18px",
+        style={{ width: "100%", background: T.inputBg, border: "none", borderRadius: 12, padding: "16px 18px",
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
@@ -1037,7 +1063,7 @@ function AnalyserScreen({ onResult }) {
           </ul>
           <textarea value={answers} onChange={e => setAnswers(e.target.value)}
             placeholder="Ta réponse, en quelques mots…"
-            style={{ width: "100%", minHeight: 80, background: T.bg, border: "none", borderRadius: 12,
+            style={{ width: "100%", minHeight: 80, background: T.inputBg, border: "none", borderRadius: 12,
               padding: 14, fontSize: 15, color: T.text, resize: "none", boxSizing: "border-box",
               fontFamily: font, outline: "none" }} />
           <button onClick={() => { const a = answers.trim(); if (a) { setQuestions(null); run(a); } }}
@@ -1227,11 +1253,11 @@ function JournalScreen({ entries, onAddNote }) {
     setNote("");
   }
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <Header title="Journal" sub="Gardez une trace de vos ressentis et analyses" />
 
       {/* Zone d'écriture en haut : accessible tout de suite, sans scroller */}
-      <div style={{ background: T.white, borderRadius: T.radius, padding: 14, marginBottom: 24,
+      <div style={{ background: T.inputBg, borderRadius: T.radius, padding: 14, marginBottom: 24,
         boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
         <textarea value={note} onChange={e => setNote(e.target.value)}
           placeholder="Écrire une note…"
@@ -1255,7 +1281,7 @@ function JournalScreen({ entries, onAddNote }) {
         entries.map(e => <JournalCard key={e.id} entry={e} />)
       )}
 
-      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24 }}>
+      <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: "auto", paddingTop: 32 }}>
         Chaque note est datée et sécurisée, pour suivre votre évolution.
       </p>
     </div>
@@ -1295,7 +1321,7 @@ function PinLockScreen({ onUnlock, onForgot }) {
       </p>
       <input value={pin} onChange={e => tryPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
         type="password" inputMode="numeric" autoFocus placeholder="••••"
-        style={{ width: 150, textAlign: "center", fontSize: 28, letterSpacing: 12, background: T.white,
+        style={{ width: 150, textAlign: "center", fontSize: 28, letterSpacing: 12, background: T.inputBg,
           border: err ? "1.5px solid #D06A70" : "none", borderRadius: 14, padding: "14px 0",
           fontFamily: font, outline: "none", boxSizing: "border-box" }} />
       {err && <p style={{ fontSize: 13.5, color: "#B42318", margin: "10px 0 0", fontWeight: 600 }}>Code incorrect, réessaie.</p>}
@@ -1504,7 +1530,7 @@ function CoachScreen({ onAddToJournal, journal }) {
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="Écrire à Clarisse…"
           rows={1}
-          style={{ flex: 1, background: T.white, border: "none", borderRadius: 16, padding: "14px 16px",
+          style={{ flex: 1, background: T.inputBg, border: "none", borderRadius: 16, padding: "14px 16px",
             fontSize: 15.5, color: T.text, resize: "none", boxSizing: "border-box", fontFamily: font,
             outline: "none", maxHeight: 160, lineHeight: 1.4, overflowY: "auto" }} />
         <button onClick={send} disabled={loading || !input.trim()}
@@ -1756,7 +1782,7 @@ function RessourceScreen({ item, onBack, backLabel }) {
     <div>
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> {backLabel}</button>
       <Header title={item.titre} sub={item.court} />
-      <div style={{ background: T.white, borderRadius: T.radius, padding: 20, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+      <div style={{ background: T.inputBg, borderRadius: T.radius, padding: 20, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
         <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: T.text }}>{item.desc}</p>
       </div>
       {item.tel && callBtn(item.appelLabel || `Appeler ${item.titre}`, item.tel, "main")}
@@ -1910,43 +1936,45 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
     <div>
       <Header title="Repérer" sub="Comprendre. Évaluer. Trouver de l'aide." />
 
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-        <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "0 0 4px" }}>Évaluer ma situation</h2>
-        <button onClick={onSeeAllQcm} style={{ background: "transparent", border: "none", color: T.pink,
-          fontSize: 14, fontWeight: 700, fontFamily: font, cursor: "pointer", padding: 0 }}>
-          Tout explorer ›
+      <div style={{ background: T.band, padding: "18px 22px 20px", margin: "0 -22px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+          <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "0 0 4px" }}>Évaluer ma situation</h2>
+          <button onClick={onSeeAllQcm} style={{ background: "transparent", border: "none", color: T.pink,
+            fontSize: 14, fontWeight: 700, fontFamily: font, cursor: "pointer", padding: 0 }}>
+            Tout explorer ›
+          </button>
+        </div>
+        <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Des QCM pour vous auto-évaluer</p>
+        <CarouselRow items={QCM_MODULES} render={(m, i) => (
+          <button onClick={() => onOpenQcm(i)}
+            style={{ width: 210, height: 132, boxSizing: "border-box", textAlign: "left", background: "#fff",
+              borderRadius: T.radius, padding: 18, border: "none", cursor: "pointer", fontFamily: font,
+              boxShadow: "0 1px 4px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
+            <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 16, color: T.text }}>{m.title}</p>
+            <p style={{ margin: 0, fontSize: 13.5, color: T.textSoft, lineHeight: 1.4 }}>{m.sub}</p>
+            <span style={{ marginTop: "auto", fontSize: 13.5, color: T.pink, fontWeight: 700 }}>Commencer ›</span>
+          </button>
+        )} />
+
+        {/* Violentomètre */}
+        <button onClick={onOpenViolento}
+          style={{ width: "100%", marginTop: 20, background: "#fff", border: "none", borderRadius: T.radius,
+            padding: 18, textAlign: "left", cursor: "pointer", fontFamily: font,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 16.5, color: T.text }}>Le violentomètre</p>
+            <span style={{ fontSize: 14, color: T.pink, fontWeight: 700 }}>Découvrir ›</span>
+          </div>
+          <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
+            <span style={{ flex: 1, background: T.levels.ok.dot }} />
+            <span style={{ flex: 2, background: T.levels.toxique.dot }} />
+            <span style={{ flex: 1.6, background: T.levels.dangereux.dot }} />
+          </div>
+          <p style={{ margin: 0, fontSize: 13.5, color: T.textSoft, lineHeight: 1.4 }}>
+            Un repère simple, en trois zones, pour évaluer comment l'autre se comporte avec toi.
+          </p>
         </button>
       </div>
-      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Des QCM pour vous auto-évaluer</p>
-      <CarouselRow items={QCM_MODULES} render={(m, i) => (
-        <button onClick={() => onOpenQcm(i)}
-          style={{ width: 210, height: 132, boxSizing: "border-box", textAlign: "left", background: "#fff",
-            borderRadius: T.radius, padding: 18, border: "none", cursor: "pointer", fontFamily: font,
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
-          <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 16, color: T.text }}>{m.title}</p>
-          <p style={{ margin: 0, fontSize: 13.5, color: T.textSoft, lineHeight: 1.4 }}>{m.sub}</p>
-          <span style={{ marginTop: "auto", fontSize: 13.5, color: T.pink, fontWeight: 700 }}>Commencer ›</span>
-        </button>
-      )} />
-
-      {/* Violentomètre */}
-      <button onClick={onOpenViolento}
-        style={{ width: "100%", marginTop: 20, background: "#fff", border: "none", borderRadius: T.radius,
-          padding: 18, textAlign: "left", cursor: "pointer", fontFamily: font,
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <p style={{ margin: 0, fontWeight: 700, fontSize: 16.5, color: T.text }}>Le violentomètre</p>
-          <span style={{ fontSize: 14, color: T.pink, fontWeight: 700 }}>Découvrir ›</span>
-        </div>
-        <div style={{ display: "flex", height: 8, borderRadius: 999, overflow: "hidden", marginBottom: 8 }}>
-          <span style={{ flex: 1, background: T.levels.ok.dot }} />
-          <span style={{ flex: 2, background: T.levels.toxique.dot }} />
-          <span style={{ flex: 1.6, background: T.levels.dangereux.dot }} />
-        </div>
-        <p style={{ margin: 0, fontSize: 13.5, color: T.textSoft, lineHeight: 1.4 }}>
-          Un repère simple, en trois zones, pour évaluer comment l'autre se comporte avec toi.
-        </p>
-      </button>
 
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "32px 0 4px" }}>
         <h2 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: 0 }}>Comprendre les mécanismes</h2>
@@ -1976,7 +2004,7 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {RESSOURCES.map((r, i) => (
             <button key={i} onClick={() => onOpenAide(i)}
-              style={{ background: T.white, borderRadius: T.radius, padding: 16, border: "none", textAlign: "left",
+              style={{ background: T.inputBg, borderRadius: T.radius, padding: 16, border: "none", textAlign: "left",
                 cursor: "pointer", fontFamily: font }}>
               <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 15, color: T.text }}>{r.titre}</p>
               <p style={{ margin: "0 0 8px", fontSize: 13, color: T.textSoft, lineHeight: 1.35 }}>{r.court}</p>
@@ -2099,7 +2127,7 @@ function PinSettings({ hasPin, onSetPin, onRemovePin }) {
   const [open, setOpen] = useState(false);
   const [a, setA] = useState(""); const [b, setB] = useState("");
   const [cur, setCur] = useState(""); const [err, setErr] = useState("");
-  const inputStyle = { width: "100%", background: T.bg, border: "none", borderRadius: 10, padding: "12px 14px",
+  const inputStyle = { width: "100%", background: T.inputBg, border: "none", borderRadius: 10, padding: "12px 14px",
     fontSize: 15, fontFamily: font, outline: "none", boxSizing: "border-box", marginBottom: 8, letterSpacing: 4 };
   function reset() { setA(""); setB(""); setCur(""); setErr(""); }
   return (
