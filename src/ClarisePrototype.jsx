@@ -2863,7 +2863,7 @@ export default function ClariseApp() {
 
   return (
     <HelpContext.Provider value={showHelp}>
-    <div style={{ height: viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
+    <div style={{ height: kbOpen && viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={closeOnboarding} />}
