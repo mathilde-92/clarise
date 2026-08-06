@@ -2591,7 +2591,7 @@ function BottomNav({ active, onChange }) {
 
   return (
     <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 30,
-      padding: "10px 14px calc(14px + env(safe-area-inset-bottom, 0px))",
+      padding: "6px 14px calc(6px + env(safe-area-inset-bottom, 0px))",
       background: "rgba(242,215,221,0.72)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
       borderTop: "1px solid rgba(235,196,205,0.6)" }}>
       <div style={{ position: "relative", display: "flex" }}>
@@ -2599,7 +2599,7 @@ function BottomNav({ active, onChange }) {
           <div style={{ position: "absolute", top: 0, bottom: 0,
             left: `calc(${activeIndex} * (100% / ${n}) + 4px)`,
             width: `calc(100% / ${n} - 8px)`,
-            background: "rgba(255,255,255,0.92)", borderRadius: 16,
+            background: "rgba(255,255,255,0.92)", borderRadius: 14,
             boxShadow: "0 2px 10px rgba(160,90,80,0.18)",
             transition: "left .32s cubic-bezier(.4,1.3,.5,1)" }} />
         )}
@@ -2608,12 +2608,12 @@ function BottomNav({ active, onChange }) {
           return (
             <button key={key} onClick={() => onChange(key)}
               style={{ position: "relative", zIndex: 1, flex: 1, background: "transparent", border: "none",
-                borderRadius: 16, padding: "9px 4px", display: "flex", flexDirection: "column",
-                alignItems: "center", gap: 4, cursor: "pointer",
+                borderRadius: 14, padding: "6px 4px", display: "flex", flexDirection: "column",
+                alignItems: "center", gap: 3, cursor: "pointer",
                 color: on ? T.pink : "#8A726E", fontFamily: font,
                 transition: "color .3s ease" }}>
-              <Icon size={22} strokeWidth={on ? 2.5 : 2} style={{ transition: "transform .3s ease", transform: on ? "translateY(-1px)" : "none" }} />
-              <span style={{ fontSize: 12.5, fontWeight: on ? 700 : 500 }}>{label}</span>
+              <Icon size={21} strokeWidth={on ? 2.5 : 2} style={{ transition: "transform .3s ease", transform: on ? "translateY(-1px)" : "none" }} />
+              <span style={{ fontSize: 11.5, fontWeight: on ? 700 : 500 }}>{label}</span>
             </button>
           );
         })}
@@ -2889,7 +2889,7 @@ export default function ClariseApp() {
         )}
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22,
-          paddingBottom: kbOpen ? 16 : "calc(90px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: kbOpen ? 16 : "calc(72px + env(safe-area-inset-bottom, 0px))",
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
