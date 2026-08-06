@@ -2590,7 +2590,8 @@ function BottomNav({ active, onChange }) {
   const activeIndex = items.findIndex(i => i.key === active);
 
   return (
-    <div style={{ flexShrink: 0, padding: "10px 14px calc(14px + env(safe-area-inset-bottom, 0px))",
+    <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 30,
+      padding: "10px 14px calc(14px + env(safe-area-inset-bottom, 0px))",
       background: "rgba(242,215,221,0.72)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
       borderTop: "1px solid rgba(235,196,205,0.6)" }}>
       <div style={{ position: "relative", display: "flex" }}>
@@ -2886,7 +2887,10 @@ export default function ClariseApp() {
             <Settings size={20} color={T.pink} />
           </button>
         )}
-        <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto", padding: "calc(env(safe-area-inset-top, 0px) + 18px) 22px 16px", display: "flex", flexDirection: "column" }}>
+        <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto",
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22,
+          paddingBottom: kbOpen ? 16 : "calc(90px + env(safe-area-inset-bottom, 0px))",
+          display: "flex", flexDirection: "column" }}>
           {body}
         </div>
         {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
