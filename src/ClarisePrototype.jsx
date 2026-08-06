@@ -2590,17 +2590,19 @@ function BottomNav({ active, onChange }) {
   const activeIndex = items.findIndex(i => i.key === active);
 
   return (
-    <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 30,
-      padding: "6px 14px calc(6px + env(safe-area-inset-bottom, 0px))",
-      background: "rgba(242,215,221,0.72)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-      borderTop: "1px solid rgba(235,196,205,0.6)" }}>
-      <div style={{ position: "relative", display: "flex" }}>
+    <div style={{ position: "fixed", left: 0, right: 0, zIndex: 30,
+      bottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
+      padding: "0 14px", pointerEvents: "none" }}>
+      <div style={{ position: "relative", display: "flex", pointerEvents: "auto",
+        background: "rgba(252,244,246,0.92)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+        borderRadius: 24, padding: 5, border: "1.5px solid rgba(255,255,255,0.95)",
+        boxShadow: "0 6px 22px rgba(140,75,88,0.20), 0 1px 3px rgba(140,75,88,0.10)" }}>
         {activeIndex >= 0 && (
-          <div style={{ position: "absolute", top: 0, bottom: 0,
-            left: `calc(${activeIndex} * (100% / ${n}) + 4px)`,
-            width: `calc(100% / ${n} - 8px)`,
-            background: "rgba(255,255,255,0.92)", borderRadius: 14,
-            boxShadow: "0 2px 10px rgba(160,90,80,0.18)",
+          <div style={{ position: "absolute", top: 5, bottom: 5,
+            left: `calc(${activeIndex} * ((100% - 10px) / ${n}) + 5px)`,
+            width: `calc((100% - 10px) / ${n})`,
+            background: "#FFFFFF", borderRadius: 19,
+            boxShadow: "0 2px 8px rgba(160,90,80,0.16)",
             transition: "left .32s cubic-bezier(.4,1.3,.5,1)" }} />
         )}
         {items.map(({ key, label, Icon }) => {
@@ -2608,12 +2610,12 @@ function BottomNav({ active, onChange }) {
           return (
             <button key={key} onClick={() => onChange(key)}
               style={{ position: "relative", zIndex: 1, flex: 1, background: "transparent", border: "none",
-                borderRadius: 14, padding: "6px 4px", display: "flex", flexDirection: "column",
+                borderRadius: 19, padding: "7px 2px", display: "flex", flexDirection: "column",
                 alignItems: "center", gap: 3, cursor: "pointer",
                 color: on ? T.pink : "#8A726E", fontFamily: font,
                 transition: "color .3s ease" }}>
-              <Icon size={21} strokeWidth={on ? 2.5 : 2} style={{ transition: "transform .3s ease", transform: on ? "translateY(-1px)" : "none" }} />
-              <span style={{ fontSize: 11.5, fontWeight: on ? 700 : 500 }}>{label}</span>
+              <Icon size={20} strokeWidth={on ? 2.5 : 2} style={{ transition: "transform .3s ease", transform: on ? "translateY(-1px)" : "none" }} />
+              <span style={{ fontSize: 11, fontWeight: on ? 700 : 500 }}>{label}</span>
             </button>
           );
         })}
@@ -2889,7 +2891,7 @@ export default function ClariseApp() {
         )}
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22,
-          paddingBottom: kbOpen ? 16 : "calc(72px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: kbOpen ? 16 : "calc(84px + env(safe-area-inset-bottom, 0px))",
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
