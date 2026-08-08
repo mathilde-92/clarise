@@ -22,7 +22,7 @@ const T = {
   band: "#F5DEE3",      // bandeau de mise en valeur, un cran plus soutenu que le fond
   text: "#3A3A3A",
   textSoft: "#6B6B6B",
-  white: "#FFF6F8",     // cartes / zones blanches légèrement rosées
+  white: "#FFFFFF",     // cartes / zones blanches : blanc pur, franc contraste avec le fond rosé
   inputBg: "#FFFFFF",   // fond des zones de saisie (textarea/input) : blanc pur, plus contrasté
   pink: "#C87483",      // couleur principale
   pinkDark: "#A85667",  // appui / pressé
@@ -1249,13 +1249,13 @@ function demoAnalyze(message) {
 // ============================================================
 //  Analyse — call to Claude
 // ============================================================
-async function analyzeMessage(message, author, relation, answers) {
+async function analyzeMessage(message, author, relation, answers, history) {
   // L'app n'appelle plus l'IA directement : elle appelle le serveur Clarisé,
   // qui garde la clé secrète et interroge l'IA d'Infomaniak/Euria.
   const res = await fetch(`${BACKEND_URL}/api/analyse`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, author, relation, answers }),
+    body: JSON.stringify({ message, author, relation, answers, history }),
   });
   if (!res.ok) throw new Error("Analyse indisponible");
   return await res.json();
@@ -1266,7 +1266,29 @@ async function analyzeMessage(message, author, relation, answers) {
 // ============================================================
 const MAX_MSG = 2000; // limite de caractères pour l'analyse
 
-function AnalyserScreen({ onResult }) {
+// Retrouve dans le journal les analyses précédentes concernant LE MÊME
+// expéditeur, pour donner du contexte à l'analyse en cours.
+// - on ne prend que les analyses sauvegardées (pas les notes perso ni les
+//   conseils du coach, qui n'ont pas d'expéditeur) ;
+// - comparaison souple sur le nom (casse, accents et espaces ignorés) ;
+// - 5 entrées maximum, de la plus récente à la plus ancienne.
+function historiqueExpediteur(journal, author) {
+  const norm = s => (s || "").toLowerCase().trim()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const cible = norm(author);
+  if (!cible || !journal || !journal.length) return [];
+  return journal
+    .filter(e => e.author && e.level && norm(e.author) === cible)
+    .slice(0, 5)
+    .map(e => ({
+      date: e.date,
+      level: e.level,
+      message: String(e.message || "").slice(0, 300),
+      tags: e.tags || [],
+    }));
+}
+
+function AnalyserScreen({ onResult, journal }) {
   const [msg, setMsg] = useState("");
   const [author, setAuthor] = useState("");
   const [relation, setRelation] = useState("");
@@ -1300,7 +1322,8 @@ function AnalyserScreen({ onResult }) {
 
     setLoading(true);
     try {
-      const result = await analyzeMessage(msg.trim(), author.trim(), relation.trim(), withAnswers || "");
+      const history = historiqueExpediteur(journal, author.trim());
+      const result = await analyzeMessage(msg.trim(), author.trim(), relation.trim(), withAnswers || "", history);
       // Texte incompréhensible détecté par l'IA
       if (result && result.level === "invalide") {
         setError({
@@ -1388,7 +1411,7 @@ function AnalyserScreen({ onResult }) {
         rows={1}
         style={{ width: "100%", background: T.inputBg, border: "none", borderRadius: 12, padding: "16px 18px",
           fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
-          resize: "none", overflowY: "auto", maxHeight: 160, lineHeight: 1.4,
+          resize: "none", overflowY: "auto", minHeight: 78, maxHeight: 160, lineHeight: 1.4,
           boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       />
       <p style={{ fontSize: 12.5, color: T.textSoft, marginTop: 8, lineHeight: 1.4 }}>
@@ -1767,13 +1790,12 @@ function EmergencyButtons() {
 // ============================================================
 //  Screen: Coach IA
 // ============================================================
-function CoachScreen({ onAddToJournal, journal }) {
-  const [messages, setMessages] = useState([
-    { role: "assistant", text: "Bonjour, je suis Clarisse. Je suis là pour t'écouter. Raconte-moi ce qui se passe, et prends tout le temps qu'il te faut." },
-  ]);
-  const [input, setInput] = useState("");
+// La conversation (messages, brouillon en cours, notes déjà ajoutées au journal)
+// est conservée par le composant parent : elle survit donc aux changements
+// d'onglet tant que l'application reste ouverte, et repart de zéro à la
+// réouverture — sauf ce qui a été explicitement enregistré dans le journal.
+function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, setInput, added, setAdded }) {
   const [loading, setLoading] = useState(false);
-  const [added, setAdded] = useState({});
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -1784,6 +1806,13 @@ function CoachScreen({ onAddToJournal, journal }) {
   }
 
   useEffect(() => { scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight); }, [messages, loading]);
+
+  // Au retour sur l'onglet, redonner à la zone de saisie la hauteur qui
+  // correspond au brouillon éventuellement en cours.
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 160) + "px"; }
+  }, []);
 
   function resetInputHeight() {
     if (inputRef.current) inputRef.current.style.height = "auto";
@@ -2590,11 +2619,9 @@ function BottomNav({ active, onChange }) {
   const activeIndex = items.findIndex(i => i.key === active);
 
   return (
-    <div style={{ position: "fixed", left: 0, right: 0, zIndex: 30,
-      bottom: "calc(8px + env(safe-area-inset-bottom, 0px))",
-      padding: "0 14px", pointerEvents: "none" }}>
-      <div style={{ position: "relative", display: "flex", pointerEvents: "auto",
-        background: "rgba(252,244,246,0.92)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    <div style={{ flexShrink: 0, padding: "8px 14px calc(8px + env(safe-area-inset-bottom, 0px))" }}>
+      <div style={{ position: "relative", display: "flex",
+        background: "rgba(244,218,225,0.94)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
         borderRadius: 24, padding: 5, border: "1.5px solid rgba(255,255,255,0.95)",
         boxShadow: "0 6px 22px rgba(140,75,88,0.20), 0 1px 3px rgba(140,75,88,0.10)" }}>
         {activeIndex >= 0 && (
@@ -2752,6 +2779,15 @@ export default function ClariseApp() {
   }
   const [showHelp, setShowHelp] = useState(true);  // afficher les textes d'aide
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Conversation avec Clarisse : gardée ici (pas dans localStorage) pour qu'elle
+  // survive aux changements d'onglet tant que l'app est ouverte, et disparaisse
+  // à la fermeture. Seules les notes ajoutées au journal sont conservées.
+  const [coachMessages, setCoachMessages] = useState([
+    { role: "assistant", text: "Bonjour, je suis Clarisse. Je suis là pour t'écouter. Raconte-moi ce qui se passe, et prends tout le temps qu'il te faut." },
+  ]);
+  const [coachInput, setCoachInput] = useState("");
+  const [coachAdded, setCoachAdded] = useState({});
   // Tutoriel d'accueil : affiché uniquement à la toute première ouverture.
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return !localStorage.getItem("clarise_onboarded"); } catch { return true; }
@@ -2761,23 +2797,19 @@ export default function ClariseApp() {
     setShowOnboarding(false);
   }
 
-  // Hauteur réellement visible : quand le clavier s'ouvre sur mobile, la zone
-  // visible rétrécit. On suit cette hauteur pour que la barre du bas reste
-  // toujours visible au lieu d'être poussée hors de l'écran.
+  // Hauteur réellement visible de l'écran, recalculée en continu. C'est ce qui
+  // permet à la barre du bas de toujours rester juste au-dessus du clavier :
+  // Safari iOS ne redimensionne PAS la page quand le clavier s'ouvre (bug
+  // documenté de longue date), donc "position: fixed" ne suffit pas — il faut
+  // fixer nous-mêmes la hauteur du conteneur sur la zone vraiment visible.
   const [viewH, setViewH] = useState(null);
-  const [kbOpen, setKbOpen] = useState(false);
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
-    const update = () => {
-      setViewH(vv.height);
-      const full = window.innerHeight || vv.height;
-      setKbOpen(full - vv.height > 150);
-    };
+    const update = () => setViewH(vv.height);
     update();
     vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
+    return () => { vv.removeEventListener("resize", update); };
   }, []);
 
   // Remettre la page tout en haut chaque fois qu'on change d'écran
@@ -2823,11 +2855,14 @@ export default function ClariseApp() {
   );
   else if (tab === "analyser") body = analysing
     ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis} saved={saved} />
-    : <AnalyserScreen onResult={handleResult} />;
+    : <AnalyserScreen onResult={handleResult} journal={journal} />;
   else if (tab === "journal") body = (pinStored && !journalUnlocked)
     ? <PinLockScreen onUnlock={tryUnlockJournal} onForgot={forgotPin} />
     : <JournalScreen entries={journal} onAddNote={addNote} />;
-  else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} journal={journal} />;
+  else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} journal={journal}
+    messages={coachMessages} setMessages={setCoachMessages}
+    input={coachInput} setInput={setCoachInput}
+    added={coachAdded} setAdded={setCoachAdded} />;
   else if (openQcm !== null) body = (
     <QcmRunner module={QCM_MODULES[openQcm]}
       onBack={() => { setOpenQcm(null); if (!qcmFromList) setQcmListOpen(false); }} />
@@ -2866,7 +2901,7 @@ export default function ClariseApp() {
 
   return (
     <HelpContext.Provider value={showHelp}>
-    <div style={{ height: kbOpen && viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
+    <div style={{ height: viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={closeOnboarding} />}
@@ -2890,24 +2925,11 @@ export default function ClariseApp() {
           </button>
         )}
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto",
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22,
-          paddingBottom: kbOpen ? 16 : "calc(84px + env(safe-area-inset-bottom, 0px))",
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22, paddingBottom: 16,
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
-        {kbOpen && (
-          <button
-            onMouseDown={e => { e.preventDefault(); if (document.activeElement) document.activeElement.blur(); }}
-            onClick={() => { if (document.activeElement) document.activeElement.blur(); }}
-            aria-label="Fermer le clavier"
-            style={{ flexShrink: 0, width: "100%", background: T.white, border: "none",
-              borderTop: "1px solid " + T.pinkBorder, padding: "12px 0",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              color: T.pink, fontSize: 14.5, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
-            <ArrowDown size={17} strokeWidth={2.4} /> Fermer le clavier
-          </button>
-        )}
+        <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />
     </div>
     </HelpContext.Provider>
   );
