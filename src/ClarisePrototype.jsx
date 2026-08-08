@@ -2811,12 +2811,28 @@ export default function ClariseApp() {
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
+    // Une fois la page redimensionnée pour le clavier, le champ en cours
+    // d'écriture peut se retrouver hors de la zone visible (s'il est plus bas
+    // sur la page) — rien ne le ramène tout seul à l'écran. On le fait nous-
+    // mêmes : dès que la taille visible change, si un champ de texte a le
+    // focus, on le ramène en vue une fois la mise en page stabilisée.
+    const scrollFocusedFieldIntoView = () => {
+      const el = document.activeElement;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.scrollIntoView({ block: "center", behavior: "smooth" });
+          });
+        });
+      }
+    };
     const update = () => {
       setViewH(vv.height);
       if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
         maxHeightRef.current = vv.height;
       }
       setKbOpen(maxHeightRef.current - vv.height > 120);
+      scrollFocusedFieldIntoView();
     };
     update();
     vv.addEventListener("resize", update);
