@@ -1891,8 +1891,11 @@ function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, se
             e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
           }}
           onFocus={e => {
+            // Le champ reste toujours visible tout seul (il est ancré en bas
+            // de l'écran Coach, dont la hauteur suit déjà le clavier) : pas
+            // besoin de le "ramener" nulle part. On garde juste la
+            // conversation calée sur le dernier message.
             setTimeout(() => {
-              try { e.target.scrollIntoView({ block: "center", behavior: "smooth" }); } catch {}
               if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }, 300);
           }}
@@ -2813,18 +2816,29 @@ export default function ClariseApp() {
     if (!vv) return;
     // Une fois la page redimensionnée pour le clavier, le champ en cours
     // d'écriture peut se retrouver hors de la zone visible (s'il est plus bas
-    // sur la page) — rien ne le ramène tout seul à l'écran. On le fait nous-
-    // mêmes : dès que la taille visible change, si un champ de texte a le
-    // focus, on le ramène en vue une fois la mise en page stabilisée.
+    // sur la page) — rien ne le ramène tout seul à l'écran. On le fait
+    // nous-mêmes, mais à la main : jamais via scrollIntoView(), qui peut sur
+    // iOS remonter jusqu'à la page entière plutôt que de rester dans la bonne
+    // zone (c'était la cause du décalage aléatoire). On calcule et on ajuste
+    // uniquement le défilement de la zone de contenu elle-même.
     const scrollFocusedFieldIntoView = () => {
       const el = document.activeElement;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
+      if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
+      const container = contentRef.current;
+      if (!container || !container.contains(el)) return;
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            el.scrollIntoView({ block: "center", behavior: "smooth" });
-          });
+          // Rien à faire si cette zone ne défile pas réellement (ex. l'écran
+          // du Coach, où le champ reste toujours visible par la mise en page
+          // elle-même, sans avoir besoin d'être "ramené" nulle part).
+          if (container.scrollHeight <= container.clientHeight + 1) return;
+          const elRect = el.getBoundingClientRect();
+          const contRect = container.getBoundingClientRect();
+          if (elRect.bottom > contRect.bottom || elRect.top < contRect.top) {
+            container.scrollTop += elRect.top - contRect.top - (contRect.height - elRect.height) / 2;
+          }
         });
-      }
+      });
     };
     const update = () => {
       setViewH(vv.height);
