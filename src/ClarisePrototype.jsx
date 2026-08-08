@@ -2797,16 +2797,27 @@ export default function ClariseApp() {
     setShowOnboarding(false);
   }
 
-  // Hauteur réellement visible de l'écran, recalculée en continu. C'est ce qui
-  // permet à la barre du bas de toujours rester juste au-dessus du clavier :
-  // Safari iOS ne redimensionne PAS la page quand le clavier s'ouvre (bug
-  // documenté de longue date), donc "position: fixed" ne suffit pas — il faut
-  // fixer nous-mêmes la hauteur du conteneur sur la zone vraiment visible.
+  // Hauteur réellement visible de l'écran, recalculée en continu, ET détection
+  // du clavier. Le conteneur principal est toujours dimensionné sur la zone
+  // vraiment visible (Safari iOS ne redimensionne pas la page tout seul quand
+  // le clavier s'ouvre — bug documenté de longue date). Pour savoir si le
+  // clavier est ouvert, on compare à la plus grande hauteur déjà vue (pas à
+  // window.innerHeight, qui rétrécit lui aussi en app installée et fausserait
+  // la comparaison) : quand la barre du bas doit disparaître, c'est ce
+  // "kbOpen" qui le décide, pas un calcul approximatif au moment du rendu.
   const [viewH, setViewH] = useState(null);
+  const [kbOpen, setKbOpen] = useState(false);
+  const maxHeightRef = useRef(null);
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
-    const update = () => setViewH(vv.height);
+    const update = () => {
+      setViewH(vv.height);
+      if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
+        maxHeightRef.current = vv.height;
+      }
+      setKbOpen(maxHeightRef.current - vv.height > 120);
+    };
     update();
     vv.addEventListener("resize", update);
     return () => { vv.removeEventListener("resize", update); };
@@ -2929,7 +2940,7 @@ export default function ClariseApp() {
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />
+        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
