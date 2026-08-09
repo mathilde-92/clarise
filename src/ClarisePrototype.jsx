@@ -2819,9 +2819,74 @@ export default function ClariseApp() {
   // alors que les évènements de focus, eux, sont toujours exacts. On masque la
   // barre du bas dès que l'un OU l'autre indique qu'on est en train d'écrire.
   const [typing, setTyping] = useState(false);
+
+  // Quand on entre dans un champ, on amène ce champ près du haut de la zone
+  // visible — comme le fait le champ « Message », qui s'y trouve déjà
+  // naturellement. Le champ devient ainsi le centre de l'attention, quel que
+  // soit son emplacement dans la page.
+  //
+  // Le minuteur est partagé avec le suivi du clavier : chaque nouvel évènement
+  // le réarme, donc le repositionnement n'a lieu qu'UNE fois, une fois le
+  // clavier ouvert et la mise en page stabilisée — jamais pendant l'animation.
+  const focusScrollTimerRef = useRef(null);
+  const scrollAnimRef = useRef(null);
+
+  // Animation du défilement pilotée par nous, image par image, plutôt que
+  // confiée au navigateur via scrollTo({ behavior: "smooth" }) : sur iOS, ce
+  // défilement natif entre en concurrence avec le repositionnement automatique
+  // du clavier, et les deux se disputent la page — d'où l'à-coup. En animant
+  // nous-mêmes, le mouvement reste régulier du début à la fin.
+  const animerDefilement = (c, cible, duree = 320) => {
+    if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
+    const depart = c.scrollTop;
+    const distance = cible - depart;
+    if (Math.abs(distance) < 1) return;
+    const t0 = performance.now();
+    // Décélération douce : rapide au début, s'arrête en fondu.
+    const adoucir = t => 1 - Math.pow(1 - t, 3);
+    const etape = maintenant => {
+      const t = Math.min(1, (maintenant - t0) / duree);
+      c.scrollTop = depart + distance * adoucir(t);
+      if (t < 1) scrollAnimRef.current = requestAnimationFrame(etape);
+      else scrollAnimRef.current = null;
+    };
+    scrollAnimRef.current = requestAnimationFrame(etape);
+  };
+
+  const amenerChampEnHaut = () => {
+    const el = document.activeElement;
+    if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
+    const container = contentRef.current;
+    if (!container || !container.contains(el)) return;
+    clearTimeout(focusScrollTimerRef.current);
+    focusScrollTimerRef.current = setTimeout(() => {
+      const c = contentRef.current;
+      if (!c || !c.contains(el)) return;
+      // Rien à faire si la page ne défile pas (ex. écran du Coach, dont le
+      // champ est déjà ancré au bon endroit par la mise en page).
+      if (c.scrollHeight <= c.clientHeight + 1) return;
+      const elRect = el.getBoundingClientRect();
+      const cRect = c.getBoundingClientRect();
+      const MARGE_HAUT = 16; // distance entre le haut de la zone et le champ
+      const delta = elRect.top - (cRect.top + MARGE_HAUT);
+      if (Math.abs(delta) > 4) {
+        // On borne la cible aux limites réelles de la page, sinon l'animation
+        // viserait un point inatteignable et s'arrêterait sèchement au bout.
+        const max = c.scrollHeight - c.clientHeight;
+        const cible = Math.max(0, Math.min(max, c.scrollTop + delta));
+        animerDefilement(c, cible);
+      }
+    }, 300);
+  };
+
+  // Une animation en cours ne doit pas survivre au démontage de l'écran.
+  useEffect(() => () => {
+    if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
+    clearTimeout(focusScrollTimerRef.current);
+  }, []);
   useEffect(() => {
     const isField = el => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
-    const onFocusIn = e => { if (isField(e.target)) setTyping(true); };
+    const onFocusIn = e => { if (isField(e.target)) { setTyping(true); amenerChampEnHaut(); } };
     const onFocusOut = () => {
       // Léger différé : lors du passage d'un champ à un autre, le focus sort
       // du premier avant d'entrer dans le second — sans ce délai, la barre
@@ -2839,34 +2904,29 @@ export default function ClariseApp() {
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
-    // Une fois la mise en page ajustée, le champ en cours d'écriture peut
-    // encore être hors de la zone de contenu (s'il est bas dans une page qui
-    // défile). On le ramène à la main — jamais via scrollIntoView(), qui peut
-    // sur iOS faire défiler la page entière au lieu de la bonne zone.
-    const scrollFocusedFieldIntoView = () => {
-      const el = document.activeElement;
-      if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
-      const container = contentRef.current;
-      if (!container || !container.contains(el)) return;
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (container.scrollHeight <= container.clientHeight + 1) return;
-          const elRect = el.getBoundingClientRect();
-          const contRect = container.getBoundingClientRect();
-          if (elRect.bottom > contRect.bottom || elRect.top < contRect.top) {
-            container.scrollTop += elRect.top - contRect.top - (contRect.height - elRect.height) / 2;
-          }
-        });
-      });
-    };
+    // Le repositionnement du champ est géré par amenerChampEnHaut() (défini
+    // plus haut), appelé aussi bien à l'entrée dans un champ qu'ici, quand la
+    // fenêtre visible change : les deux réarment le même minuteur, donc le
+    // mouvement n'a lieu qu'une fois, à la fin.
+    //
+    // Sans précaution, "update" se déclenche des dizaines de fois pendant les
+    // ~300 ms d'animation du clavier — et à chaque fois, on redessine toute
+    // l'application avec une nouvelle taille. C'est ce déluge de redessins
+    // rapprochés qui donnait l'impression d'un flash (le contenu qui
+    // disparaît et réapparaît). On regroupe donc ces mises à jour : seule la
+    // dernière valeur, une fois que ça s'est stabilisé, déclenche un rendu.
+    let heightSettleTimer = null;
     const update = () => {
-      setViewH(vv.height);
-      setViewTop(vv.offsetTop || 0);
-      if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
-        maxHeightRef.current = vv.height;
-      }
-      setKbOpen(maxHeightRef.current - vv.height > 120);
-      scrollFocusedFieldIntoView();
+      clearTimeout(heightSettleTimer);
+      heightSettleTimer = setTimeout(() => {
+        setViewH(vv.height);
+        setViewTop(vv.offsetTop || 0);
+        if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
+          maxHeightRef.current = vv.height;
+        }
+        setKbOpen(maxHeightRef.current - vv.height > 120);
+      }, 60);
+      amenerChampEnHaut();
     };
     update();
     vv.addEventListener("resize", update);
@@ -2874,6 +2934,7 @@ export default function ClariseApp() {
     // qui signale le glissement de la fenêtre visible décrit plus haut.
     vv.addEventListener("scroll", update);
     return () => {
+      clearTimeout(heightSettleTimer);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
     };
@@ -2884,6 +2945,9 @@ export default function ClariseApp() {
   const viewKey = [tab, settingsOpen, analysing ? "a" : "", openQcm, qcmListOpen,
     openMeca, mecaListOpen, openAide, violentoOpen].join("|");
   useEffect(() => {
+    // Une animation de défilement en cours doit être interrompue, sinon elle
+    // continuerait de tirer la page vers l'ancienne cible après le changement.
+    if (scrollAnimRef.current) { cancelAnimationFrame(scrollAnimRef.current); scrollAnimRef.current = null; }
     if (contentRef.current) contentRef.current.scrollTo(0, 0);
   }, [viewKey]);
 
