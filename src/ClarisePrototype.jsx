@@ -2843,35 +2843,21 @@ export default function ClariseApp() {
     // encore être hors de la zone de contenu (s'il est bas dans une page qui
     // défile). On le ramène à la main — jamais via scrollIntoView(), qui peut
     // sur iOS faire défiler la page entière au lieu de la bonne zone.
-    //
-    // Deux précautions contre l'à-coup visible à l'ouverture du clavier :
-    //  - on attend que la fenêtre visible se stabilise (le clavier s'anime, et
-    //    l'évènement se déclenche des dizaines de fois pendant ce temps) ;
-    //  - on corrige le STRICT MINIMUM pour rendre le champ visible, au lieu de
-    //    le recentrer — iOS le repositionne déjà de son côté, et recentrer
-    //    par-dessus produisait un saut inutile.
-    let settleTimer = null;
     const scrollFocusedFieldIntoView = () => {
       const el = document.activeElement;
       if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
       const container = contentRef.current;
       if (!container || !container.contains(el)) return;
-      clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => {
-        if (container.scrollHeight <= container.clientHeight + 1) return;
-        const elRect = el.getBoundingClientRect();
-        const contRect = container.getBoundingClientRect();
-        const marge = 12;
-        let delta = 0;
-        if (elRect.bottom > contRect.bottom - marge) {
-          delta = elRect.bottom - (contRect.bottom - marge);
-        } else if (elRect.top < contRect.top + marge) {
-          delta = elRect.top - (contRect.top + marge);
-        }
-        // En dessous de quelques pixels, on ne touche à rien : ça ne se verrait
-        // pas, et ça éviterait d'autant moins un mouvement perceptible.
-        if (Math.abs(delta) > 4) container.scrollTop += delta;
-      }, 180);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (container.scrollHeight <= container.clientHeight + 1) return;
+          const elRect = el.getBoundingClientRect();
+          const contRect = container.getBoundingClientRect();
+          if (elRect.bottom > contRect.bottom || elRect.top < contRect.top) {
+            container.scrollTop += elRect.top - contRect.top - (contRect.height - elRect.height) / 2;
+          }
+        });
+      });
     };
     const update = () => {
       setViewH(vv.height);
@@ -2888,7 +2874,6 @@ export default function ClariseApp() {
     // qui signale le glissement de la fenêtre visible décrit plus haut.
     vv.addEventListener("scroll", update);
     return () => {
-      clearTimeout(settleTimer);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
     };
