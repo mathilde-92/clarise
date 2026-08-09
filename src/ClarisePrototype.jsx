@@ -2800,27 +2800,49 @@ export default function ClariseApp() {
     setShowOnboarding(false);
   }
 
-  // Hauteur réellement visible de l'écran, recalculée en continu, ET détection
-  // du clavier. Le conteneur principal est toujours dimensionné sur la zone
-  // vraiment visible (Safari iOS ne redimensionne pas la page tout seul quand
-  // le clavier s'ouvre — bug documenté de longue date). Pour savoir si le
-  // clavier est ouvert, on compare à la plus grande hauteur déjà vue (pas à
-  // window.innerHeight, qui rétrécit lui aussi en app installée et fausserait
-  // la comparaison) : quand la barre du bas doit disparaître, c'est ce
-  // "kbOpen" qui le décide, pas un calcul approximatif au moment du rendu.
+  // Suivi de la zone réellement visible de l'écran (hauteur ET position), plus
+  // détection du clavier.
+  //
+  // Point clé : quand le clavier s'ouvre, iOS ne se contente pas de rétrécir la
+  // zone visible — s'il juge que le champ visé serait masqué, il FAIT GLISSER
+  // toute la fenêtre visible vers le haut (visualViewport.offsetTop devient
+  // positif). Notre application, elle, reste ancrée en haut de la page : elle
+  // se retrouve donc décalée, avec le haut coupé et un grand vide en bas.
+  // C'est exactement le bug observé — et il épargnait les champs situés tout
+  // en haut de la page, pour lesquels iOS n'a jamais besoin de faire glisser
+  // quoi que ce soit. On répercute donc ce décalage sur l'application.
   const [viewH, setViewH] = useState(null);
+  const [viewTop, setViewTop] = useState(0);
   const [kbOpen, setKbOpen] = useState(false);
+  // Signal direct et fiable : un champ de texte est-il en cours d'édition ?
+  // La mesure de hauteur (kbOpen) peut échouer selon le contexte d'affichage,
+  // alors que les évènements de focus, eux, sont toujours exacts. On masque la
+  // barre du bas dès que l'un OU l'autre indique qu'on est en train d'écrire.
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const isField = el => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+    const onFocusIn = e => { if (isField(e.target)) setTyping(true); };
+    const onFocusOut = () => {
+      // Léger différé : lors du passage d'un champ à un autre, le focus sort
+      // du premier avant d'entrer dans le second — sans ce délai, la barre
+      // réapparaîtrait une fraction de seconde entre les deux.
+      setTimeout(() => setTyping(isField(document.activeElement)), 60);
+    };
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
   const maxHeightRef = useRef(null);
   useEffect(() => {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
-    // Une fois la page redimensionnée pour le clavier, le champ en cours
-    // d'écriture peut se retrouver hors de la zone visible (s'il est plus bas
-    // sur la page) — rien ne le ramène tout seul à l'écran. On le fait
-    // nous-mêmes, mais à la main : jamais via scrollIntoView(), qui peut sur
-    // iOS remonter jusqu'à la page entière plutôt que de rester dans la bonne
-    // zone (c'était la cause du décalage aléatoire). On calcule et on ajuste
-    // uniquement le défilement de la zone de contenu elle-même.
+    // Une fois la mise en page ajustée, le champ en cours d'écriture peut
+    // encore être hors de la zone de contenu (s'il est bas dans une page qui
+    // défile). On le ramène à la main — jamais via scrollIntoView(), qui peut
+    // sur iOS faire défiler la page entière au lieu de la bonne zone.
     const scrollFocusedFieldIntoView = () => {
       const el = document.activeElement;
       if (!el || (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA")) return;
@@ -2828,9 +2850,6 @@ export default function ClariseApp() {
       if (!container || !container.contains(el)) return;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          // Rien à faire si cette zone ne défile pas réellement (ex. l'écran
-          // du Coach, où le champ reste toujours visible par la mise en page
-          // elle-même, sans avoir besoin d'être "ramené" nulle part).
           if (container.scrollHeight <= container.clientHeight + 1) return;
           const elRect = el.getBoundingClientRect();
           const contRect = container.getBoundingClientRect();
@@ -2842,6 +2861,7 @@ export default function ClariseApp() {
     };
     const update = () => {
       setViewH(vv.height);
+      setViewTop(vv.offsetTop || 0);
       if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
         maxHeightRef.current = vv.height;
       }
@@ -2850,7 +2870,13 @@ export default function ClariseApp() {
     };
     update();
     vv.addEventListener("resize", update);
-    return () => { vv.removeEventListener("resize", update); };
+    // "scroll" est indispensable ici : c'est cet évènement, et non "resize",
+    // qui signale le glissement de la fenêtre visible décrit plus haut.
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
   }, []);
 
   // Remettre la page tout en haut chaque fois qu'on change d'écran
@@ -2943,6 +2969,7 @@ export default function ClariseApp() {
   return (
     <HelpContext.Provider value={showHelp}>
     <div style={{ height: viewH ? viewH + "px" : "100dvh", width: "100%", background: T.bg,
+      transform: viewTop ? `translateY(${viewTop}px)` : undefined,
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={closeOnboarding} />}
@@ -2970,7 +2997,7 @@ export default function ClariseApp() {
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!kbOpen && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
+        {!(kbOpen || typing) && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaListOpen(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
