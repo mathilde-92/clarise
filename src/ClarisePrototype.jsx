@@ -2867,7 +2867,7 @@ export default function ClariseApp() {
       if (c.scrollHeight <= c.clientHeight + 1) return;
       const elRect = el.getBoundingClientRect();
       const cRect = c.getBoundingClientRect();
-      const MARGE_HAUT = 56; // distance entre le haut de la zone et le champ
+      const MARGE_HAUT = 110; // distance entre le haut de la zone et le champ
       const delta = elRect.top - (cRect.top + MARGE_HAUT);
       if (Math.abs(delta) > 4) {
         // On borne la cible aux limites réelles de la page, sinon l'animation
