@@ -2830,6 +2830,8 @@ export default function ClariseApp() {
   // clavier ouvert et la mise en page stabilisée — jamais pendant l'animation.
   const focusScrollTimerRef = useRef(null);
   const scrollAnimRef = useRef(null);
+  // Dernier décalage de fenêtre appliqué, pour ne compenser que la variation.
+  const dernierTopRef = useRef(0);
 
   // Animation du défilement pilotée par nous, image par image, plutôt que
   // confiée au navigateur via scrollTo({ behavior: "smooth" }) : sur iOS, ce
@@ -2919,8 +2921,21 @@ export default function ClariseApp() {
     const update = () => {
       clearTimeout(heightSettleTimer);
       heightSettleTimer = setTimeout(() => {
+        const nouveauTop = vv.offsetTop || 0;
+        // Suivre le glissement de la fenêtre d'iOS décale visuellement tout le
+        // contenu vers le bas. Sans compensation, on voyait donc le champ
+        // descendre d'abord, avant que l'animation ne le remonte : deux
+        // mouvements pour un seul besoin. On annule ce décalage en faisant
+        // défiler le contenu d'autant, dans le même mouvement — le contenu
+        // reste optiquement immobile, et seule l'animation le déplace ensuite.
+        const diff = nouveauTop - dernierTopRef.current;
+        if (diff !== 0) {
+          const c = contentRef.current;
+          if (c && c.scrollHeight > c.clientHeight + 1) c.scrollTop += diff;
+          dernierTopRef.current = nouveauTop;
+        }
         setViewH(vv.height);
-        setViewTop(vv.offsetTop || 0);
+        setViewTop(nouveauTop);
         if (maxHeightRef.current === null || vv.height > maxHeightRef.current) {
           maxHeightRef.current = vv.height;
         }
@@ -2948,6 +2963,7 @@ export default function ClariseApp() {
     // Une animation de défilement en cours doit être interrompue, sinon elle
     // continuerait de tirer la page vers l'ancienne cible après le changement.
     if (scrollAnimRef.current) { cancelAnimationFrame(scrollAnimRef.current); scrollAnimRef.current = null; }
+    dernierTopRef.current = 0;
     if (contentRef.current) contentRef.current.scrollTo(0, 0);
   }, [viewKey]);
 
