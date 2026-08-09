@@ -2836,7 +2836,7 @@ export default function ClariseApp() {
   // défilement natif entre en concurrence avec le repositionnement automatique
   // du clavier, et les deux se disputent la page — d'où l'à-coup. En animant
   // nous-mêmes, le mouvement reste régulier du début à la fin.
-  const animerDefilement = (c, cible, duree = 320) => {
+  const animerDefilement = (c, cible, duree = 520) => {
     if (scrollAnimRef.current) cancelAnimationFrame(scrollAnimRef.current);
     const depart = c.scrollTop;
     const distance = cible - depart;
