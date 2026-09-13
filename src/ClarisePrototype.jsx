@@ -68,7 +68,7 @@ async function exportJournal(journal) {
   try {
     jsPDF = await loadJsPDF();
   } catch (e) {
-    alert("L'export PDF n'a pas pu démarrer (connexion requise). Réessayez en ligne.");
+    alert("L'export PDF n'a pas pu démarrer (connexion requise). Réessaie en ligne.");
     return;
   }
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -218,63 +218,63 @@ const QCM_MODULES = [
     sub: "Comprendre comment je me sens près des autres.",
     sense: "difficulte",
     questions: [
-      "Avez-vous peur de sa réaction si vous ne répondez pas ou si vous dites non ?",
-      "Vous sentez-vous obligé·e de vous justifier régulièrement ?",
-      "Avez-vous l'impression de « marcher sur des œufs » en sa présence ?",
-      "Vos paroles ou vos intentions sont-elles souvent déformées ou retournées contre vous ?",
-      "Renoncez-vous à voir certaines personnes pour éviter les tensions ?",
-      "Après un échange, repartez-vous souvent avec un sentiment de confusion ou de culpabilité ?",
+      "As-tu peur de sa réaction si tu ne réponds pas ou si tu dis non ?",
+      "Te sens-tu obligé·e de te justifier régulièrement ?",
+      "As-tu l'impression de « marcher sur des œufs » en sa présence ?",
+      "Tes paroles ou tes intentions sont-elles souvent déformées ou retournées contre toi ?",
+      "Renonces-tu à voir certaines personnes pour éviter les tensions ?",
+      "Après un échange, repars-tu souvent avec un sentiment de confusion ou de culpabilité ?",
     ],
-    green: "Vos relations proches semblent reposer sur le respect et la sécurité. Vous vous sentez globalement libre d'être vous-même.",
+    green: "Tes relations proches semblent reposer sur le respect et la sécurité. Tu te sens globalement libre d'être toi-même.",
     yellow: "Certains échanges génèrent de la tension ou de la culpabilité. Ce ne sont pas forcément des signes graves, mais ils méritent attention. En parler à une personne de confiance peut aider à y voir clair.",
-    red: "Plusieurs réponses décrivent un climat de peur, de justification permanente ou de confusion. Ce sont des signaux importants. Vous n'avez pas à porter ça seul·e : parlez-en à un professionnel ou à un proche de confiance.",
+    red: "Plusieurs réponses décrivent un climat de peur, de justification permanente ou de confusion. Ce sont des signaux importants. Tu n'as pas à porter ça seul·e : parles-en à un professionnel ou à un proche de confiance.",
   },
   {
     title: "Ma charge intérieure",
     sub: "Ce qui pèse, fatigue ou tend sans bruit.",
     sense: "difficulte",
     questions: [
-      "Vous sentez-vous fatigué·e même après avoir dormi ou vous être reposé·e ?",
-      "Avez-vous du mal à « débrancher » et à penser à autre chose ?",
-      "Avez-vous l'impression de tout porter ou de devoir tout gérer seul·e ?",
+      "Te sens-tu fatigué·e même après avoir dormi ou t'être reposé·e ?",
+      "As-tu du mal à « débrancher » et à penser à autre chose ?",
+      "As-tu l'impression de tout porter ou de devoir tout gérer seul·e ?",
       "Des tensions physiques (gorge serrée, ventre noué, dos…) reviennent-elles souvent ?",
-      "Remettez-vous à plus tard des choses qui comptent pour vous, faute d'énergie ?",
-      "Avez-vous le sentiment d'être au bord de la surcharge ?",
+      "Remets-tu à plus tard des choses qui comptent pour toi, faute d'énergie ?",
+      "As-tu le sentiment d'être au bord de la surcharge ?",
     ],
-    green: "Votre charge intérieure paraît gérable en ce moment. Vous gardez de l'espace pour souffler.",
-    yellow: "Plusieurs signaux de fatigue ou de tension reviennent. Ce n'est pas rien : votre corps et votre esprit demandent peut-être un peu de répit. Pensez à alléger ce qui peut l'être et à demander de l'aide.",
-    red: "Les réponses décrivent une surcharge installée. À ce niveau, le repos seul ne suffit souvent plus. Parlez-en à un professionnel : il peut vous aider à reprendre du souffle et à répartir la charge.",
+    green: "Ta charge intérieure paraît gérable en ce moment. Tu gardes de l'espace pour souffler.",
+    yellow: "Plusieurs signaux de fatigue ou de tension reviennent. Ce n'est pas rien : ton corps et ton esprit demandent peut-être un peu de répit. Pense à alléger ce qui peut l'être et à demander de l'aide.",
+    red: "Les réponses décrivent une surcharge installée. À ce niveau, le repos seul ne suffit souvent plus. Parles-en à un professionnel : il peut t'aider à reprendre du souffle et à répartir la charge.",
   },
   {
     title: "Comment je me parle",
     sub: "Observer la façon dont je me traite au quotidien.",
     sense: "difficulte",
     questions: [
-      "Vous reprochez-vous fréquemment vos erreurs, même petites ?",
-      "Vous comparez-vous souvent aux autres à votre désavantage ?",
-      "Vous arrive-t-il de vous dire des choses dures, que vous ne diriez jamais à un ami ?",
-      "Avez-vous du mal à reconnaître vos réussites ou à vous féliciter ?",
-      "Pensez-vous souvent que vous « n'en faites pas assez » ou que vous « n'êtes pas à la hauteur » ?",
-      "Vous sentez-vous coupable de prendre du temps pour vous ?",
+      "Te reproches-tu fréquemment tes erreurs, même petites ?",
+      "Te compares-tu souvent aux autres à ton désavantage ?",
+      "T'arrive-t-il de te dire des choses dures, que tu ne dirais jamais à un ami ?",
+      "As-tu du mal à reconnaître tes réussites ou à te féliciter ?",
+      "Penses-tu souvent que tu « n'en fais pas assez » ou que tu « n'es pas à la hauteur » ?",
+      "Te sens-tu coupable de prendre du temps pour toi ?",
     ],
-    green: "Vous semblez vous traiter avec une bienveillance plutôt stable. Vous laissez de la place à l'erreur sans vous accabler.",
-    yellow: "Votre voix intérieure se fait parfois dure. Ce n'est pas une fatalité : la façon dont on se parle s'apprend et se rééduque. Y prêter attention est déjà un premier pas.",
-    red: "Les réponses décrivent une autocritique forte et fréquente. Cette dureté envers soi pèse lourd avec le temps. Un professionnel (psychologue) peut vous aider à apaiser ce dialogue intérieur — vous le méritez.",
+    green: "Tu sembles te traiter avec une bienveillance plutôt stable. Tu laisses de la place à l'erreur sans t'accabler.",
+    yellow: "Ta voix intérieure se fait parfois dure. Ce n'est pas une fatalité : la façon dont on se parle s'apprend et se rééduque. Y prêter attention est déjà un premier pas.",
+    red: "Les réponses décrivent une autocritique forte et fréquente. Cette dureté envers soi pèse lourd avec le temps. Un professionnel (psychologue) peut t'aider à apaiser ce dialogue intérieur — tu le mérites.",
   },
   {
     title: "Mon entourage intérieur",
     sub: "Comment je me sens entouré·e.",
     sense: "ressource",
     questions: [
-      "Avez-vous au moins une personne à qui parler librement de ce que vous vivez ?",
-      "Vous sentez-vous écouté·e sans être jugé·e quand vous vous confiez ?",
-      "Pouvez-vous demander de l'aide quand vous en avez besoin ?",
-      "Vous sentez-vous relié·e à des gens qui comptent pour vous ?",
-      "Avez-vous le sentiment de pouvoir compter sur quelqu'un en cas de coup dur ?",
-      "Vous sentez-vous à votre place dans au moins un groupe ou un lien ?",
+      "As-tu au moins une personne à qui parler librement de ce que tu vis ?",
+      "Te sens-tu écouté·e sans être jugé·e quand tu te confies ?",
+      "Peux-tu demander de l'aide quand tu en as besoin ?",
+      "Te sens-tu relié·e à des gens qui comptent pour toi ?",
+      "As-tu le sentiment de pouvoir compter sur quelqu'un en cas de coup dur ?",
+      "Te sens-tu à ta place dans au moins un groupe ou un lien ?",
     ],
-    green: "Vous semblez bien entouré·e et capable de vous appuyer sur d'autres. C'est une ressource précieuse — prenez-en soin.",
-    yellow: "Le soutien autour de vous existe mais reste fragile ou limité. Renforcer un ou deux liens de confiance peut faire une vraie différence. Vous n'êtes pas obligé·e d'avancer seul·e.",
+    green: "Tu sembles bien entouré·e et capable de t'appuyer sur d'autres. C'est une ressource précieuse — prends-en soin.",
+    yellow: "Le soutien autour de toi existe mais reste fragile ou limité. Renforcer un ou deux liens de confiance peut faire une vraie différence. Tu n'es pas obligé·e d'avancer seul·e.",
     red: "Les réponses pointent un sentiment d'isolement. Se sentir seul·e rend tout plus lourd, et c'est souvent le premier point sur lequel agir. Renouer un lien, ou parler à un professionnel ou une ligne d'écoute, peut beaucoup aider.",
   },
   {
@@ -282,32 +282,32 @@ const QCM_MODULES = [
     sub: "Faire le point sur ce qui se passe en moi en ce moment.",
     sense: "difficulte",
     questions: [
-      "Vous sentez-vous anxieux·se ou tendu·e une bonne partie de la journée ?",
-      "Avez-vous du mal à ressentir de la joie ou de l'envie en ce moment ?",
-      "Vos émotions vous semblent-elles difficiles à contenir (larmes, colère, vide) ?",
-      "Avez-vous l'impression de fonctionner « en pilote automatique » ?",
+      "Te sens-tu anxieux·se ou tendu·e une bonne partie de la journée ?",
+      "As-tu du mal à ressentir de la joie ou de l'envie en ce moment ?",
+      "Tes émotions te semblent-elles difficiles à contenir (larmes, colère, vide) ?",
+      "As-tu l'impression de fonctionner « en pilote automatique » ?",
       "Le sommeil ou l'appétit sont-ils perturbés depuis quelque temps ?",
-      "Avez-vous le sentiment d'avoir perdu votre élan habituel ?",
+      "As-tu le sentiment d'avoir perdu ton élan habituel ?",
     ],
-    green: "Votre météo intérieure paraît plutôt clémente en ce moment. Vous gardez accès à vos émotions et à votre énergie.",
-    yellow: "Le ciel intérieur est un peu chargé. Ces signaux passagers méritent d'être écoutés sans dramatiser. Accordez-vous de la douceur, et surveillez si cela s'installe.",
-    red: "Plusieurs signaux d'un mal-être qui dure se cumulent. Quand l'anxiété, le vide ou la perte d'élan s'installent, en parler à un professionnel est important. Si vous traversez un moment très difficile, la page « Obtenir de l'aide » réunit des contacts immédiats.",
+    green: "Ta météo intérieure paraît plutôt clémente en ce moment. Tu gardes accès à tes émotions et à ton énergie.",
+    yellow: "Le ciel intérieur est un peu chargé. Ces signaux passagers méritent d'être écoutés sans dramatiser. Accorde-toi de la douceur, et surveille si cela s'installe.",
+    red: "Plusieurs signaux d'un mal-être qui dure se cumulent. Quand l'anxiété, le vide ou la perte d'élan s'installent, en parler à un professionnel est important. Si tu traverses un moment très difficile, la page « Obtenir de l'aide » réunit des contacts immédiats.",
   },
   {
     title: "Mes ressources pour aller mieux",
     sub: "Ce que je sais faire pour me soutenir.",
     sense: "ressource",
     questions: [
-      "Avez-vous des activités qui vous font du bien et que vous pratiquez vraiment ?",
-      "Savez-vous repérer quand vous avez besoin de souffler ?",
-      "Arrivez-vous à poser des limites pour vous protéger ?",
-      "Avez-vous des moments rien qu'à vous dans la semaine ?",
-      "Connaissez-vous ce qui vous apaise quand ça ne va pas ?",
-      "Vous autorisez-vous à demander de l'aide sans culpabiliser ?",
+      "As-tu des activités qui te font du bien et que tu pratiques vraiment ?",
+      "Sais-tu repérer quand tu as besoin de souffler ?",
+      "Arrives-tu à poser des limites pour te protéger ?",
+      "As-tu des moments rien qu'à toi dans la semaine ?",
+      "Connais-tu ce qui t'apaise quand ça ne va pas ?",
+      "T'autorises-tu à demander de l'aide sans culpabiliser ?",
     ],
-    green: "Vous disposez de vraies ressources pour prendre soin de vous. Continuez à vous appuyer dessus, surtout dans les moments tendus.",
-    yellow: "Vous avez quelques appuis, mais ils restent à consolider. Identifier deux ou trois gestes simples qui vous font du bien — et les protéger — renforcera votre équilibre.",
-    red: "Les réponses montrent peu de ressources mobilisables aujourd'hui. Ce n'est pas un manque de volonté : ces appuis se construisent, souvent avec de l'aide. Un professionnel peut vous accompagner pour les retrouver pas à pas.",
+    green: "Tu disposes de vraies ressources pour prendre soin de toi. Continue à t'appuyer dessus, surtout dans les moments tendus.",
+    yellow: "Tu as quelques appuis, mais ils restent à consolider. Identifier deux ou trois gestes simples qui te font du bien — et les protéger — renforcera ton équilibre.",
+    red: "Les réponses montrent peu de ressources mobilisables aujourd'hui. Ce n'est pas un manque de volonté : ces appuis se construisent, souvent avec de l'aide. Un professionnel peut t'accompagner pour les retrouver pas à pas.",
   },
 ];
 
@@ -729,8 +729,8 @@ const MECANISMES = [
     exemple: "« C'est toi qui es jaloux et contrôlant. » (de la part de celui qui contrôle)",
   },
   { cat: "Altération de la réalité et de la responsabilité", mot: "Renversement de responsabilité", icon: Repeat, analyse: true,
-    court: "Retourner la faute vers vous.",
-    def: "Le renversement de responsabilité consiste à vous attribuer la cause de ses propres comportements ou émotions, pour que vous vous sentiez coupable à sa place — en démontrant que c'est vous qui avez fauté, ou que la faute a été commise à cause de vous.",
+    court: "Retourner la faute vers toi.",
+    def: "Le renversement de responsabilité consiste à t'attribuer la cause de ses propres comportements ou émotions, pour que tu te sentes coupable à sa place — en démontrant que c'est toi qui as fauté, ou que la faute a été commise à cause de toi.",
     effet: "On finit par s'excuser et porter un poids qui ne nous revient pas.",
     exemple: "« Si je m'énerve, c'est parce que tu me pousses à bout. »",
   },
@@ -1213,7 +1213,7 @@ const RESSOURCES = [
     court: "Danger immédiat",
     tel: "112",
     appelLabel: "Appeler le 112",
-    desc: "En cas de danger immédiat, appelez les secours. Le 112 est le numéro d'urgence européen, gratuit, joignable partout dans l'Union européenne.",
+    desc: "En cas de danger immédiat, appelle les secours. Le 112 est le numéro d'urgence européen, gratuit, joignable partout dans l'Union européenne.",
     autres: [
       { label: "Police / Gendarmerie", tel: "17" },
       { label: "Pompiers", tel: "18" },
@@ -1225,33 +1225,79 @@ const RESSOURCES = [
     court: "Écoute & orientation",
     tel: "3919",
     appelLabel: "Appeler le 3919",
-    desc: "Le 3919 est le numéro national d'écoute, d'information et d'orientation pour les femmes victimes de violences. Gratuit, anonyme, accessible 24h/24 et 7j/7. Ce n'est pas un numéro d'urgence : en cas de danger immédiat, composez le 17.",
+    desc: "Le 3919 est le numéro national d'écoute, d'information et d'orientation pour les femmes victimes de violences. Gratuit, anonyme, accessible 24h/24 et 7j/7, dans plusieurs langues, et accessible aux personnes sourdes et malentendantes. Ce n'est pas un numéro d'urgence : en cas de danger immédiat, compose le 17.\n\nSi téléphoner est difficile ou risqué pour toi, le 3919 propose aussi un tchat, du lundi au vendredi de 13h à 20h. Les réponses sont écrites par des professionnelles formées — il n'y a pas d'intelligence artificielle derrière ce tchat.",
     autres: [],
+    lien: "https://solidaritefemmes.org/appeler-le-3919/",
+    lienLabel: "Ouvrir le tchat du 3919",
+  },
+  {
+    titre: "Signaler en ligne",
+    court: "Sans téléphoner, 24h/24",
+    tel: null,
+    appelLabel: null,
+    desc: "La plateforme officielle « Arrêtons les violences » permet de signaler des violences et de dialoguer avec des forces de l'ordre formées, par écrit, de façon anonyme et gratuite, 24h/24 et 7j/7.\n\nC'est une solution utile quand appeler est impossible — parce que quelqu'un est là, ou parce que parler est trop difficile.",
+    autres: [],
+    lien: "https://arretonslesviolences.gouv.fr/",
+    lienLabel: "Ouvrir la plateforme",
   },
   {
     titre: "SOS Amitié",
     court: "Soutien psychologique",
     tel: "0972394050",
     appelLabel: "Appeler SOS Amitié",
-    desc: "SOS Amitié offre une écoute anonyme et bienveillante, jour et nuit, pour toute personne en souffrance ou en situation de détresse.",
+    desc: "SOS Amitié offre une écoute anonyme et bienveillante, jour et nuit, pour toute personne en souffrance ou en situation de détresse.\n\nLes deux autres numéros ci-dessous ont des horaires différents : le 3114 répond jour et nuit, le 116 006 de 9h à 20h tous les jours.",
     autres: [
-      { label: "France Victimes (aide aux victimes)", tel: "116006" },
+      { label: "3114 — souffrance psychique, pensées suicidaires (24h/24)", tel: "3114" },
+      { label: "France Victimes — aide aux victimes (tous les jours, 9h-20h)", tel: "116006" },
     ],
   },
   {
+    titre: "Enfance en danger",
+    court: "Si tu as moins de 21 ans",
+    tel: "119",
+    appelLabel: "Appeler le 119",
+    pourMineurs: true,
+    desc: "Le 119 est le numéro national de l'enfance en danger. Il est fait pour toi si tu as moins de 21 ans et que tu subis des violences — physiques, psychologiques ou sexuelles — ou si tu es simplement inquiet·e pour quelqu'un.\n\nGratuit, anonyme, 24h/24 et 7j/7. Il n'apparaît pas sur les factures de téléphone. Des professionnels de l'enfance répondent, et ils ont l'habitude : tu peux appeler même si tu n'es pas sûr·e que « c'est grave ».\n\nUn tchat existe aussi, si parler au téléphone est difficile ou risqué.",
+    autres: [],
+    lien: "https://www.allo119.gouv.fr/",
+    lienLabel: "Ouvrir le tchat du 119",
+  },
+  {
+    titre: "Harcèlement en ligne",
+    court: "Messages, photos, réseaux",
+    tel: "3018",
+    appelLabel: "Appeler le 3018",
+    pourMineurs: true,
+    desc: "Le 3018 est le numéro contre le cyberharcèlement et les violences en ligne : messages qui ne s'arrêtent pas, rumeurs, photos partagées sans ton accord, chantage, usurpation de compte.\n\nGratuit, anonyme, confidentiel, tous les jours de 9h à 23h. Par téléphone, par tchat, ou via l'application.\n\nIls peuvent aussi faire supprimer rapidement un contenu ou un compte sur la plupart des plateformes — c'est concret, et ça marche.",
+    autres: [],
+    lien: "https://www.3018.fr/",
+    lienLabel: "Ouvrir le site du 3018",
+  },
+  {
+    titre: "Fil Santé Jeunes",
+    court: "Parler de tout, dès 12 ans",
+    tel: "0800235236",
+    appelLabel: "Appeler Fil Santé Jeunes",
+    pourMineurs: true,
+    desc: "Un espace d'écoute pour les jeunes à partir de 12 ans : relations, famille, sexualité, mal-être, questions de santé. Rien n'est trop petit ni trop bête pour en parler.\n\nGratuit et anonyme, tous les jours de 9h à 23h. Des professionnels (psychologues, médecins) répondent.",
+    autres: [],
+    lien: "https://www.filsantejeunes.com/",
+    lienLabel: "Ouvrir le site",
+  },
+  {
     titre: "Trouver un lieu d'accueil",
-    court: "Près de chez vous",
+    court: "Près de chez toi",
     tel: null,
     appelLabel: null,
-    desc: "Les CIDFF (Centres d'information sur les droits des femmes et des familles) accueillent, informent et accompagnent gratuitement, partout en France. Pour trouver le centre le plus proche, le 3919 peut vous orienter.",
+    desc: "Les CIDFF (Centres d'information sur les droits des femmes et des familles) accueillent, informent et accompagnent gratuitement, partout en France. Pour trouver le centre le plus proche, le 3919 peut t'orienter.",
     autres: [],
   },
   {
     titre: "Trouver un psychologue",
-    court: "Près de chez vous",
+    court: "Près de chez toi",
     tel: null,
     appelLabel: null,
-    desc: "Parler à un professionnel peut aider à y voir plus clair, à son rythme. Le bouton ci-dessous ouvre une recherche de psychologues autour de votre position, dans votre application de cartes. Votre position n'est ni enregistrée ni partagée par Clarisé.",
+    desc: "Parler à un professionnel peut aider à y voir plus clair, à son rythme. Le bouton ci-dessous ouvre une recherche de psychologues autour de ta position, dans ton application de cartes. Ta position n'est ni enregistrée ni partagée par Clarisé.",
     autres: [],
     lien: "https://www.google.com/maps/search/psychologue+près+de+moi",
     lienLabel: "Chercher autour de moi",
@@ -1367,7 +1413,7 @@ const DEMO_BANK = [
     level: "dangereux",
     summary: "Ce message mêle une accusation et une menace pour obtenir une réaction.",
     cards: [
-      { category: "Culpabilisation", quote: "c'est de ta faute", explanation: "Le message vous fait porter la responsabilité de la situation." },
+      { category: "Culpabilisation", quote: "c'est de ta faute", explanation: "Le message te fait porter la responsabilité de la situation." },
       { category: "Menace", quote: "tu vas avoir des problèmes", explanation: "Cette formulation installe une pression par la peur plutôt qu'un échange." },
     ],
     replies: [
@@ -1379,9 +1425,9 @@ const DEMO_BANK = [
   {
     match: ["c'est terminé", "si tu fais ça", "entre nous"],
     level: "toxique",
-    summary: "Ce message conditionne la relation à votre comportement.",
+    summary: "Ce message conditionne la relation à ton comportement.",
     cards: [
-      { category: "Chantage affectif", quote: "c'est terminé entre nous", explanation: "La relation est présentée comme une récompense ou une punition selon ce que vous faites." },
+      { category: "Chantage affectif", quote: "c'est terminé entre nous", explanation: "La relation est présentée comme une récompense ou une punition selon ce que tu fais." },
     ],
     replies: [
       "J'entends que tu es en colère, mais cette décision m'appartient.",
@@ -1391,9 +1437,9 @@ const DEMO_BANK = [
   {
     match: ["tu exagères", "tu inventes", "jamais dit", "ça n'est jamais"],
     level: "toxique",
-    summary: "Ce message remet en cause votre perception des faits.",
+    summary: "Ce message remet en cause ta perception des faits.",
     cards: [
-      { category: "Gaslighting", quote: "tu exagères toujours", explanation: "Le message vous pousse à douter de votre propre mémoire ou ressenti." },
+      { category: "Gaslighting", quote: "tu exagères toujours", explanation: "Le message te pousse à douter de ta propre mémoire ou ressenti." },
     ],
     replies: [
       "Ce que j'ai vécu est réel pour moi.",
@@ -1585,7 +1631,7 @@ function AnalyserScreen({ onResult, journal }) {
       />
 
       <p style={{ fontSize: 13.5, color: T.textSoft, margin: "16px 0 8px", fontWeight: 400 }}>
-        Votre relation avec l'expéditeur <span style={{ fontStyle: "italic" }}>(optionnel)</span>
+        Ta relation avec l'expéditeur <span style={{ fontStyle: "italic" }}>(optionnel)</span>
       </p>
       <textarea
         value={relation}
@@ -1775,7 +1821,7 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
         </button>
       </div>
       <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
-        Cette analyse n'est pas un diagnostic, elle vous aide à prendre du recul.
+        Cette analyse n'est pas un diagnostic, elle t'aide à prendre du recul.
       </p>
     </div>
   );
@@ -1821,7 +1867,7 @@ function JournalScreen({ entries, onAddNote }) {
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
-      <Header title="Journal" sub="Gardez une trace de vos ressentis et analyses" />
+      <Header title="Journal" sub="Garde une trace de tes ressentis et analyses" />
       <div style={{ background: T.inputBg, borderRadius: T.radius, padding: 14, marginBottom: 24,
         boxShadow: "0 1px 5px rgba(0,0,0,0.05)" }}>
         <textarea value={note} onChange={e => setNote(e.target.value)}
@@ -1839,13 +1885,13 @@ function JournalScreen({ entries, onAddNote }) {
       </div>
       {entries.length === 0 ? (
         <p style={{ fontSize: 14.5, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.5 }}>
-          Vos notes et analyses enregistrées apparaîtront ici, de la plus récente à la plus ancienne.
+          Tes notes et analyses enregistrées apparaîtront ici, de la plus récente à la plus ancienne.
         </p>
       ) : (
         entries.map(e => <JournalCard key={e.id} entry={e} />)
       )}
       <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: "auto", paddingTop: 32 }}>
-        Chaque note est datée et sécurisée, pour suivre votre évolution.
+        Chaque note est datée et sécurisée, pour suivre ton évolution.
       </p>
     </div>
   );
@@ -1854,21 +1900,176 @@ function JournalScreen({ entries, onAddNote }) {
 // ============================================================
 //  Code PIN du journal
 // ============================================================
+// Empreinte NON cryptographique (djb2), conservée uniquement pour reconnaître
+// et migrer les journaux créés avant le chiffrement réel (voir plus bas).
+// Ne sert plus à protéger quoi que ce soit de nouveau.
 function pinHash(str) {
   let h = 5381;
   for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
   return "p" + h.toString(36);
 }
 
-function PinLockScreen({ onUnlock, onForgot }) {
+// ---- Chiffrement réel du journal (Web Crypto API) ----
+// Le code sert de matière première pour dériver une clé AES-256,
+// via PBKDF2 (250 000 itérations) salée aléatoirement par appareil. Le texte
+// en clair n'est jamais écrit sur le disque : seul le résultat chiffré l'est.
+//
+// Longueur : 6 chiffres pour tout nouveau code (1 000 000 de combinaisons,
+// soit environ 12 heures de calcul pour les essayer toutes, contre 8 minutes
+// avec 4 chiffres). Les codes à 4 chiffres créés avant ce changement restent
+// acceptés au déverrouillage — les invalider reviendrait à rendre un journal
+// définitivement illisible, ce qui serait pire que le risque évité.
+const PIN_LONGUEUR = 6;        // exigée pour tout nouveau code
+const PIN_LONGUEUR_MIN = 4;    // tolérée à l'ouverture, pour les anciens codes
+const PIN_PBKDF2_ITERATIONS = 250000;
+
+function b64FromBytes(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function bytesFromB64(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+function genererSelPin() {
+  return b64FromBytes(crypto.getRandomValues(new Uint8Array(16)));
+}
+async function deriverClePin(pin, selB64) {
+  const enc = new TextEncoder();
+  const sel = bytesFromB64(selB64);
+  const materiau = await crypto.subtle.importKey("raw", enc.encode(pin), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: sel, iterations: PIN_PBKDF2_ITERATIONS, hash: "SHA-256" },
+    materiau, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+  );
+}
+async function chiffrerJournal(journalArray, cle) {
+  const enc = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = enc.encode(JSON.stringify(journalArray));
+  const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cle, data);
+  return JSON.stringify({ v: 1, iv: b64FromBytes(iv), data: b64FromBytes(new Uint8Array(cipher)) });
+}
+// Lève une erreur si la clé (donc le code) est incorrecte — c'est cette
+// erreur, et non une comparaison d'empreinte séparée, qui sert de
+// vérification : AES-GCM refuse de déchiffrer si l'authentification ne
+// correspond pas.
+async function dechiffrerJournal(blobString, cle) {
+  const blob = JSON.parse(blobString);
+  const iv = bytesFromB64(blob.iv);
+  const cipher = bytesFromB64(blob.data);
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cle, cipher);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+// ============================================================
+//  Sortie rapide — quitter Clarisé sans laisser de trace évidente
+// ============================================================
+// Objectif : qu'un coup d'œil rapide sur le téléphone (onglets ouverts,
+// bouton « retour », onglets récents) ne révèle pas que l'app a été utilisée.
+//
+// Ce qui est fait ici :
+//  1. On efface l'historique de navigation DANS l'app : chaque écran visité a
+//     empilé une entrée ; sans ça, le bouton « retour » du navigateur ramène
+//     droit dans Clarisé. On remplace toute la pile par la page neutre.
+//  2. On tente de fermer l'onglet (window.close()). Ça ne marche que si la
+//     page a été ouverte par un script — sinon le navigateur refuse. C'est
+//     pour ça que l'étape 3 existe, et qu'on ne s'y fie jamais seul.
+//  3. Quoi qu'il arrive, on remplace la page par un site neutre, SANS ajouter
+//     d'entrée à l'historique (replace, pas href).
+//
+// Limite qui subsiste, et qu'on dit honnêtement dans le tutoriel : si l'app
+// est installée sur l'écran d'accueil, son icône reste visible. La masquer
+// relève du téléphone, pas du site.
+function sortieRapide() {
+  const NEUTRE = "https://www.google.com";
+  try {
+    // 1. Neutralise le bouton « retour » : on écrase la pile d'historique.
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", NEUTRE);
+      // Empile quelques états neutres puis revient, pour que « retour »
+      // ne retombe pas sur un écran de Clarisé resté en mémoire.
+      for (let i = 0; i < 3; i++) window.history.pushState(null, "", NEUTRE);
+    }
+  } catch {}
+  try {
+    // 2. Tente de fermer l'onglet (échoue silencieusement si interdit).
+    window.close();
+  } catch {}
+  // 3. Repli systématique : remplace la page, sans nouvelle entrée d'historique.
+  try { window.location.replace(NEUTRE); }
+  catch { window.location.href = NEUTRE; }
+}
+
+// ============================================================
+//  Écran d'âge — affiché une fois, juste après le tutoriel
+// ============================================================
+// Volontairement PAS une barrière : personne n'est empêché d'utiliser
+// Clarisé. Une adolescente qui subit une relation toxique, ou un enfant qui
+// vit quelque chose d'anormal à la maison, a précisément besoin de mots pour
+// le nommer — les priver de l'app irait contre sa raison d'être.
+// La réponse sert à deux choses, et à rien d'autre :
+//   1. afficher en priorité les ressources adaptées (le 119 Enfance en
+//      danger plutôt que le 3919, par exemple) ;
+//   2. indiquer à Clarisse d'adapter son langage et ses repères.
+// Aucune donnée n'est envoyée : la réponse reste sur l'appareil.
+const TRANCHES_AGE = [
+  { cle: "moins15", label: "Moins de 15 ans" },
+  { cle: "15a17", label: "Entre 15 et 17 ans" },
+  { cle: "adulte", label: "18 ans ou plus" },
+  { cle: "prefere_pas", label: "Je préfère ne pas répondre" },
+];
+
+function AgeScreen({ onChoose }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 50, background: T.bg,
+      display: "flex", flexDirection: "column", justifyContent: "center",
+      padding: "48px 28px", fontFamily: font, overflowY: "auto" }}>
+      <h1 style={{ fontSize: 23, fontWeight: 700, color: "#5A2A24", margin: "0 0 12px", lineHeight: 1.3 }}>
+        Une dernière question
+      </h1>
+      <p style={{ fontSize: 15.5, color: T.text, margin: "0 0 8px", lineHeight: 1.5 }}>
+        Quel âge as-tu ?
+      </p>
+      <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 24px", lineHeight: 1.5 }}>
+        Ça sert seulement à te proposer les bonnes ressources : selon l'âge, ce ne sont pas les mêmes personnes qui peuvent t'aider. Ta réponse reste sur ton téléphone et n'est envoyée à personne. Quoi que tu répondes, tu auras accès à toute l'application.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {TRANCHES_AGE.map(t => (
+          <button key={t.cle} onClick={() => onChoose(t.cle)}
+            style={{ width: "100%", textAlign: "left", background: "#fff", borderRadius: T.radius,
+              padding: "18px 20px", border: "none", cursor: "pointer", fontFamily: font,
+              fontSize: 16, color: T.text, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PinLockScreen({ onUnlock, onForgot, message }) {
   const [pin, setPin] = useState("");
   const [err, setErr] = useState(false);
-  function tryPin(v) {
+  const [checking, setChecking] = useState(false);
+  // La longueur n'est plus fixe (6 pour les nouveaux codes, 4 pour les
+  // anciens) : on ne peut donc plus valider automatiquement au dernier
+  // chiffre. On valide à 6 caractères, ou sur action explicite (bouton /
+  // touche Entrée) dès que le minimum est atteint.
+  async function valider(v) {
+    if (checking || v.length < PIN_LONGUEUR_MIN) return;
+    setChecking(true);
+    const ok = await onUnlock(v);
+    setChecking(false);
+    if (ok) return;
+    setErr(true); setPin("");
+  }
+  function onChange(v) {
     setPin(v); setErr(false);
-    if (v.length === 4) {
-      if (onUnlock(v)) return;
-      setErr(true); setPin("");
-    }
+    if (v.length === PIN_LONGUEUR) valider(v);
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "14vh", textAlign: "center" }}>
@@ -1878,14 +2079,23 @@ function PinLockScreen({ onUnlock, onForgot }) {
       </span>
       <h1 style={{ fontSize: 21, fontWeight: 700, color: "#5A2A24", margin: "0 0 6px" }}>Journal verrouillé</h1>
       <p style={{ fontSize: 14.5, color: T.textSoft, margin: "0 0 22px", maxWidth: 260, lineHeight: 1.45 }}>
-        Entre ton code à 4 chiffres pour accéder à ton journal.
+        {message || "Entre ton code pour accéder à ton journal."}
       </p>
-      <input value={pin} onChange={e => tryPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-        type="password" inputMode="numeric" autoFocus placeholder="••••"
-        style={{ width: 150, textAlign: "center", fontSize: 28, letterSpacing: 12, background: T.inputBg,
+      <input value={pin}
+        onChange={e => onChange(e.target.value.replace(/\D/g, "").slice(0, PIN_LONGUEUR))}
+        onKeyDown={e => { if (e.key === "Enter") valider(pin); }}
+        type="password" inputMode="numeric" autoFocus placeholder="••••••" disabled={checking}
+        style={{ width: 190, textAlign: "center", fontSize: 28, letterSpacing: 10, background: T.inputBg,
           border: err ? "1.5px solid #D06A70" : "none", borderRadius: 14, padding: "14px 0",
-          fontFamily: font, outline: "none", boxSizing: "border-box" }} />
+          fontFamily: font, outline: "none", boxSizing: "border-box", opacity: checking ? 0.6 : 1 }} />
       {err && <p style={{ fontSize: 13.5, color: "#B42318", margin: "10px 0 0", fontWeight: 600 }}>Code incorrect, réessaie.</p>}
+      {pin.length >= PIN_LONGUEUR_MIN && pin.length < PIN_LONGUEUR && !checking && (
+        <button onClick={() => valider(pin)}
+          style={{ marginTop: 14, background: T.pink, color: "#fff", border: "none", borderRadius: 999,
+            padding: "10px 24px", fontSize: 14.5, fontWeight: 700, fontFamily: font, cursor: "pointer" }}>
+          Valider
+        </button>
+      )}
       <button onClick={onForgot} style={{ marginTop: 26, background: "transparent", border: "none",
         color: T.textSoft, fontSize: 13.5, fontFamily: font, cursor: "pointer", textDecoration: "underline" }}>
         Code oublié ?
@@ -1981,7 +2191,7 @@ function EmergencyButtons() {
 // est conservée par le composant parent : elle survit donc aux changements
 // d'onglet tant que l'application reste ouverte, et repart de zéro à la
 // réouverture — sauf ce qui a été explicitement enregistré dans le journal.
-function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, setInput, added, setAdded }) {
+function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, setInput, added, setAdded, trancheAge }) {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -2011,7 +2221,7 @@ function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, se
     const next = [...messages, { role: "user", text }];
 
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      setMessages([...next, { role: "assistant", text: "Je n'ai pas de connexion Internet pour le moment. L'application fonctionne bien, mais le coach a besoin d'être en ligne pour vous répondre. Vérifiez votre connexion, puis réessayez." }]);
+      setMessages([...next, { role: "assistant", text: "Je n'ai pas de connexion Internet pour le moment. L'application fonctionne bien, mais le coach a besoin d'être en ligne pour te répondre. Vérifie ta connexion, puis réessaie." }]);
       setInput("");
       resetInputHeight();
       return;
@@ -2028,7 +2238,7 @@ function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, se
       }).join("\n");
       const res = await fetch(`${BACKEND_URL}/api/coach`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMsgs, journalNotes }),
+        body: JSON.stringify({ messages: apiMsgs, journalNotes, trancheAge }),
       });
       if (!res.ok) throw new Error("coach indisponible");
       const data = await res.json();
@@ -2037,8 +2247,8 @@ function CoachScreen({ onAddToJournal, journal, messages, setMessages, input, se
     } catch {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       const msg = offline
-        ? "La connexion s'est interrompue. L'application n'est pas en cause : le coach a juste besoin d'Internet. Réessayez une fois reconnecté."
-        : "Je n'ai pas pu répondre à l'instant. Réessayez dans un moment.";
+        ? "La connexion s'est interrompue. L'application n'est pas en cause : le coach a juste besoin d'Internet. Réessaie une fois reconnecté."
+        : "Je n'ai pas pu répondre à l'instant. Réessaie dans un moment.";
       setMessages([...next, { role: "assistant", text: msg }]);
     } finally { setLoading(false); }
   }
@@ -2126,7 +2336,7 @@ function QcmRunner({ module, onBack }) {
     return (
       <div>
         <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> Tous les thèmes</button>
-        <Header title={module.title} sub="Votre bilan" />
+        <Header title={module.title} sub="Ton bilan" />
         <div style={{ background: l.bg, borderRadius: T.radius, padding: "22px 20px", marginBottom: 16 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
             <span style={{ width: 11, height: 11, borderRadius: 999, background: l.dot }} />
@@ -2190,7 +2400,7 @@ function QcmListScreen({ onOpenQcm, onBack }) {
   return (
     <div>
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> Repérer</button>
-      <Header title="Comprendre ce que je vis" sub="Choisissez un thème pour explorer comment vous vous sentez." />
+      <Header title="Comprendre ce que je vis" sub="Choisis un thème pour explorer comment tu te sens." />
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {QCM_MODULES.map((m, i) => (
           <button key={i} onClick={() => onOpenQcm(i)}
@@ -2399,7 +2609,7 @@ function RessourceScreen({ item, onBack, backLabel }) {
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> {backLabel}</button>
       <Header title={item.titre} sub={item.court} />
       <div style={{ background: T.inputBg, borderRadius: T.radius, padding: 20, marginBottom: 24, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
-        <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: T.text }}>{item.desc}</p>
+        <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: T.text, whiteSpace: "pre-line" }}>{item.desc}</p>
       </div>
       {item.tel && callBtn(item.appelLabel || `Appeler ${item.titre}`, item.tel, "main")}
       {item.autres.map((a, i) => callBtn(a.label, a.tel, i))}
@@ -2417,7 +2627,7 @@ function RessourceScreen({ item, onBack, backLabel }) {
         </p>
       )}
       <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
-        En cas de danger immédiat, composez le 17 (police) ou le 112.
+        En cas de danger immédiat, compose le 17 (police) ou le 112.
       </p>
     </div>
   );
@@ -2447,7 +2657,7 @@ const VIOLENTOMETRE = [
       "Accepte tes amies, tes amis et ta famille",
       "A confiance en toi",
       "Est content quand tu te sens épanouie",
-      "S'assure de ton accord pour ce que vous faites ensemble",
+      "S'assure de ton accord avant de faire quelque chose ensemble",
     ],
   },
   {
@@ -2545,7 +2755,7 @@ function ViolentometreScreen({ onBack }) {
   );
 }
 
-function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenAide, onOpenViolento }) {
+function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenAide, onOpenViolento, ressources }) {
   return (
     <div>
       <Header title="Repérer" sub="Comprendre. Évaluer. Trouver de l'aide." />
@@ -2558,7 +2768,7 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
             Tout explorer ›
           </button>
         </div>
-        <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Des QCM pour vous auto-évaluer</p>
+        <p style={{ fontSize: 14, color: T.textSoft, margin: "0 0 16px" }}>Des QCM pour t'auto-évaluer</p>
         <CarouselRow items={QCM_MODULES} render={(m, i) => (
           <button onClick={() => onOpenQcm(i)}
             style={{ width: 210, height: 132, boxSizing: "border-box", textAlign: "left", background: "#fff",
@@ -2615,8 +2825,8 @@ function ReperScreen({ onOpenQcm, onSeeAllQcm, onOpenMeca, onSeeAllMeca, onOpenA
         <h2 style={{ fontSize: 21, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>Obtenir de l'aide</h2>
         <p style={{ fontSize: 14, color: T.pink100, margin: "0 0 16px" }}>Ressources d'urgence et soutien</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {RESSOURCES.map((r, i) => (
-            <button key={i} onClick={() => onOpenAide(i)}
+          {(ressources || RESSOURCES).map((r) => (
+            <button key={r.titre} onClick={() => onOpenAide(RESSOURCES.indexOf(r))}
               style={{ background: T.inputBg, borderRadius: T.radius, padding: 16, border: "none", textAlign: "left",
                 cursor: "pointer", fontFamily: font }}>
               <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 15, color: T.text }}>{r.titre}</p>
@@ -2691,10 +2901,36 @@ const INFO_PAGES = {
   confidentialite: {
     titre: "Confidentialité",
     corps: [
-      "Votre vie privée est une priorité. Les messages que vous analysez et vos notes de journal vous appartiennent.",
-      "Dans la version complète, le journal pourra rester chiffré sur votre appareil, et l'analyse pourra fonctionner sans conserver vos messages.",
-      "Aucune donnée n'est vendue ni utilisée à des fins publicitaires. Vous pouvez exporter ou effacer vos données à tout moment depuis cette page.",
-      "(Texte de base — à faire valider avant publication.)",
+      "Ta vie privée est une priorité. Voici exactement ce que Clarisé fait de tes données — sans détour.",
+
+      "QUELLES DONNÉES, ET OÙ ELLES SONT",
+      "• Ton journal (notes, messages enregistrés, analyses sauvegardées) reste sur ton téléphone. Il n'est jamais envoyé sur un serveur, et personne d'autre que toi ne peut y accéder depuis l'extérieur.",
+      "• Si tu actives un code, ton journal est chiffré sur ton appareil. Sans ce code, son contenu est illisible — y compris pour nous.",
+      "• Les messages que tu analyses, et ce que tu écris à Clarisse, sont envoyés à un service d'intelligence artificielle pour produire la réponse. Ils transitent par notre serveur, puis par Infomaniak, une entreprise suisse dont les serveurs sont en Suisse.",
+      "• Clarisé ne te demande ni nom, ni adresse e-mail, ni numéro de téléphone. Il n'y a pas de compte à créer.",
+
+      "POURQUOI",
+      "Ces données servent uniquement à te répondre : analyser le message que tu colles, et permettre à Clarisse de tenir une conversation cohérente. Rien d'autre.",
+
+      "COMBIEN DE TEMPS",
+      "• Ton journal reste sur ton téléphone tant que tu ne l'effaces pas. Tu peux tout supprimer depuis cette page, à tout moment.",
+      "• Ta conversation avec Clarisse disparaît quand tu fermes l'application. Seules les notes que tu choisis d'enregistrer sont conservées.",
+      "• Les messages envoyés pour analyse ne sont pas conservés par Clarisé une fois la réponse renvoyée.",
+
+      "QUI Y A ACCÈS",
+      "• Toi, sur ton téléphone.",
+      "• Le service d'IA (Infomaniak), le temps de produire une réponse.",
+      "• Aucune donnée n'est vendue, louée, ni utilisée à des fins publicitaires. Il n'y a aucun traceur publicitaire dans Clarisé.",
+
+      "TES DROITS",
+      "Le règlement européen sur la protection des données (RGPD) te donne le droit d'accéder à tes données, de les corriger, de les effacer, de t'opposer à leur traitement et d'en demander une copie.",
+      "En pratique, dans Clarisé : tes données sont déjà entre tes mains. Depuis la page Paramètres, tu peux exporter ton journal (copie complète) ou l'effacer définitivement, sans avoir à demander quoi que ce soit à personne.",
+      "Pour toute autre demande, ou pour une réclamation, tu peux nous écrire (voir Mentions légales) ou saisir la CNIL, l'autorité française de protection des données.",
+
+      "CE QUE CLARISÉ NE FAIT PAS",
+      "Clarisé ne te localise pas, ne lit pas tes messages à ton insu, n'accède pas à tes contacts, et ne prévient jamais personne à ta place.",
+
+      "(Texte rédigé de bonne foi — une validation juridique est prévue avant la publication à grande échelle.)",
     ],
   },
   sources: {
@@ -2769,15 +3005,15 @@ function PinSettings({ hasPin, onSetPin, onRemovePin }) {
       {open && !hasPin && (
         <div style={{ marginTop: 14 }}>
           <p style={{ fontSize: 13, color: T.textSoft, margin: "0 0 10px", lineHeight: 1.45 }}>
-            Choisis un code à 4 chiffres. Il sera demandé pour ouvrir le journal.
+            Choisis un code à 6 chiffres. Il sera demandé pour ouvrir le journal, et servira à chiffrer son contenu. Si tu l'oublies, il ne sera pas récupérable.
           </p>
-          <input value={a} onChange={e => { setA(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
-            type="password" inputMode="numeric" placeholder="Nouveau code (4 chiffres)" style={inputStyle} />
-          <input value={b} onChange={e => { setB(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+          <input value={a} onChange={e => { setA(e.target.value.replace(/\D/g, "").slice(0, PIN_LONGUEUR)); setErr(""); }}
+            type="password" inputMode="numeric" placeholder="Nouveau code (6 chiffres)" style={inputStyle} />
+          <input value={b} onChange={e => { setB(e.target.value.replace(/\D/g, "").slice(0, PIN_LONGUEUR)); setErr(""); }}
             type="password" inputMode="numeric" placeholder="Confirme le code" style={inputStyle} />
           {err && <p style={{ fontSize: 13, color: "#B42318", margin: "0 0 8px", fontWeight: 600 }}>{err}</p>}
           <button onClick={() => {
-              if (a.length !== 4) { setErr("Le code doit faire 4 chiffres."); return; }
+              if (a.length !== PIN_LONGUEUR) { setErr("Le code doit faire " + PIN_LONGUEUR + " chiffres."); return; }
               if (a !== b) { setErr("Les deux codes ne correspondent pas."); return; }
               onSetPin(a); reset(); setOpen(false);
             }}
@@ -2792,11 +3028,11 @@ function PinSettings({ hasPin, onSetPin, onRemovePin }) {
           <p style={{ fontSize: 13, color: T.textSoft, margin: "0 0 10px", lineHeight: 1.45 }}>
             Pour supprimer le code, entre d'abord ton code actuel. (Pour le changer : supprime-le, puis crée-en un nouveau.)
           </p>
-          <input value={cur} onChange={e => { setCur(e.target.value.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+          <input value={cur} onChange={e => { setCur(e.target.value.replace(/\D/g, "").slice(0, PIN_LONGUEUR)); setErr(""); }}
             type="password" inputMode="numeric" placeholder="Code actuel" style={inputStyle} />
           {err && <p style={{ fontSize: 13, color: "#B42318", margin: "0 0 8px", fontWeight: 600 }}>{err}</p>}
-          <button onClick={() => {
-              if (!onRemovePin(cur)) { setErr("Code incorrect."); return; }
+          <button onClick={async () => {
+              if (!(await onRemovePin(cur))) { setErr("Code incorrect."); return; }
               reset(); setOpen(false);
             }}
             style={{ width: "100%", background: "#fff", color: "#B42318", border: "1px solid #EBC4CD",
@@ -2818,11 +3054,11 @@ function SettingsScreen({ showHelp, setShowHelp, onBack, onReplayTutorial, journ
   return (
     <div>
       <button onClick={onBack} style={backBtnStyle}><ArrowLeft size={18} /> Retour</button>
-      <Header title="Paramètres" sub="Adaptez Clarisé à vos besoins, pour une utilisation confortable et sereine." />
+      <Header title="Paramètres" sub="Adapte Clarisé à tes besoins, pour une utilisation confortable et sereine." />
 
       <SectionLabel>Affichage</SectionLabel>
       <ToggleRow label="Afficher les textes d'aide"
-        desc="Les courtes explications sous le titre de chaque page. Désactivez-les une fois l'app prise en main."
+        desc="Les courtes explications sous le titre de chaque page. Désactive-les une fois l'app prise en main."
         value={showHelp} onChange={setShowHelp} />
       <StaticRow label="Revoir le tutoriel d'accueil" onClick={onReplayTutorial} />
 
@@ -2943,7 +3179,7 @@ function Onboarding({ onClose }) {
     { Icon: Navigation, titre: "Se repérer",
       texte: "Des mini-tests pour faire le point, un glossaire des mécanismes, et des ressources d'aide en cas de besoin." },
     { Icon: LogOut, titre: "Sortie rapide",
-      texte: "En haut de l'écran, le bouton « Sortie » quitte immédiatement Clarisé et ouvre une page neutre. Pour les moments où tu as besoin de discrétion." },
+      texte: "En haut de l'écran, le bouton « Sortie » quitte immédiatement Clarisé, ouvre une page neutre et neutralise le bouton « retour ». À savoir : si tu as ajouté Clarisé à ton écran d'accueil, l'icône, elle, reste visible." },
     { Icon: null, titre: "Tu peux commencer",
       texte: "Tu retrouveras ce tutoriel à tout moment dans les Paramètres. Prends soin de toi." },
   ];
@@ -2999,16 +3235,40 @@ export default function ClariseApp() {
   const [tab, setTab] = useState("analyser");
   const [analysing, setAnalysing] = useState(null); // result object or null
   const [saved, setSaved] = useState(false);
-  // Journal : conservé sur le téléphone (localStorage). Rien n'est envoyé sur
-  // un serveur. Au tout premier lancement, le journal démarre vide.
+  // Journal : conservé sur le téléphone (localStorage), jamais sur un serveur.
+  // Si un code PIN protège le journal, son contenu est chiffré sur le disque
+  // (AES-256-GCM, clé dérivée du code) : on ne peut donc PAS le charger tant
+  // que le code n'a pas été saisi — on démarre vide dans ce cas, et le vrai
+  // contenu n'arrive qu'après déverrouillage réussi (voir tryUnlockJournal).
+  // Sans PIN, ou pour un journal pas encore migré vers le chiffrement (voir
+  // plus bas), le contenu est en clair et se charge normalement.
   const [journal, setJournal] = useState(() => {
     try {
+      if (localStorage.getItem("clarise_pin_salt")) return []; // protégé : attend le déverrouillage
       const raw = localStorage.getItem("clarise_journal");
       return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   });
+  // Clé de déchiffrement en mémoire uniquement (jamais persistée, jamais dans
+  // le state React) : disparaît à la fermeture de l'app, comme il se doit.
+  const journalKeyRef = useRef(null);
   useEffect(() => {
-    try { localStorage.setItem("clarise_journal", JSON.stringify(journal)); } catch {}
+    let annule = false;
+    (async () => {
+      try {
+        if (journalKeyRef.current) {
+          const blob = await chiffrerJournal(journal, journalKeyRef.current);
+          if (!annule) localStorage.setItem("clarise_journal", blob);
+        } else if (!localStorage.getItem("clarise_pin_salt") && !localStorage.getItem("clarise_pin")) {
+          // Aucune protection active : comportement historique, JSON en clair.
+          localStorage.setItem("clarise_journal", JSON.stringify(journal));
+        }
+        // Sinon (protégé mais pas encore déverrouillé cette session) : on
+        // n'écrit rien, pour ne jamais écraser un journal chiffré qu'on n'a
+        // pas pu relire.
+      } catch (e) { console.error("Échec d'écriture du journal :", e); }
+    })();
+    return () => { annule = true; };
   }, [journal]);
   const [openQcm, setOpenQcm] = useState(null); // index of module or null
   const [qcmListOpen, setQcmListOpen] = useState(false); // full vertical list page
@@ -3027,30 +3287,130 @@ export default function ClariseApp() {
   const [openAide, setOpenAide] = useState(null); // index of resource or null
   const [violentoOpen, setViolentoOpen] = useState(false); // page violentomètre
 
-  // Code PIN du journal (empreinte stockée sur l'appareil, jamais le code en clair).
-  const [pinStored, setPinStored] = useState(() => {
+  // Code PIN du journal.
+  // - pinSalt : système actuel — le journal est chiffré, ce sel sert à
+  //   redériver la même clé à partir du code entré.
+  // - legacyPinHash : ancien système (empreinte djb2 seule, journal en
+  //   clair) — conservé uniquement pour reconnaître un journal créé avant le
+  //   chiffrement et le migrer automatiquement au prochain déverrouillage.
+  const [pinSalt, setPinSalt] = useState(() => {
+    try { return localStorage.getItem("clarise_pin_salt") || null; } catch { return null; }
+  });
+  const [legacyPinHash, setLegacyPinHash] = useState(() => {
     try { return localStorage.getItem("clarise_pin") || null; } catch { return null; }
   });
+  const hasPin = !!(pinSalt || legacyPinHash);
   const [journalUnlocked, setJournalUnlocked] = useState(false);
-  function tryUnlockJournal(code) {
-    if (pinHash(code) === pinStored) { setJournalUnlocked(true); return true; }
-    return false;
-  }
-  function setJournalPin(codeOrNull) {
+  // Une action de sauvegarde (analyse, note, conseil du coach) déclenchée
+  // AVANT tout déverrouillage cette session, le temps de demander le code.
+  // Sans ça, écrire dans un journal chiffré qu'on n'a pas encore pu relire
+  // effacerait silencieusement ce qui s'y trouvait déjà.
+  const [pendingSave, setPendingSave] = useState(null); // { entry, after } | null
+
+  async function tryUnlockJournal(code) {
     try {
-      if (codeOrNull) { localStorage.setItem("clarise_pin", pinHash(codeOrNull)); setPinStored(pinHash(codeOrNull)); setJournalUnlocked(true); }
-      else { localStorage.removeItem("clarise_pin"); setPinStored(null); }
-    } catch {}
+      if (pinSalt) {
+        const cle = await deriverClePin(code, pinSalt);
+        const raw = localStorage.getItem("clarise_journal");
+        const data = raw ? await dechiffrerJournal(raw, cle) : [];
+        journalKeyRef.current = cle;
+        setJournal(pendingSave ? [pendingSave.entry, ...data] : data);
+        if (pendingSave?.after) pendingSave.after();
+        setPendingSave(null);
+        setJournalUnlocked(true);
+        return true;
+      }
+      if (legacyPinHash) {
+        if (pinHash(code) !== legacyPinHash) return false;
+        // Code correct sur l'ancien système : le journal courant (state React)
+        // est déjà en clair, puisqu'il a été chargé tel quel au démarrage.
+        // On migre maintenant vers le chiffrement réel, silencieusement.
+        const selNeuf = genererSelPin();
+        const cle = await deriverClePin(code, selNeuf);
+        journalKeyRef.current = cle;
+        localStorage.setItem("clarise_pin_salt", selNeuf);
+        localStorage.removeItem("clarise_pin");
+        setPinSalt(selNeuf);
+        setLegacyPinHash(null);
+        if (pendingSave) { setJournal(j => [pendingSave.entry, ...j]); pendingSave.after?.(); setPendingSave(null); }
+        setJournalUnlocked(true);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      // Le déchiffrement échoue si la clé (donc le code) est fausse.
+      return false;
+    }
   }
+
+  async function activerPin(code) {
+    // Toujours appelé sur un journal actuellement en clair (voir PinSettings :
+    // cette action n'est proposée que si hasPin est faux).
+    const sel = genererSelPin();
+    const cle = await deriverClePin(code, sel);
+    journalKeyRef.current = cle;
+    localStorage.setItem("clarise_pin_salt", sel);
+    setPinSalt(sel);
+    setJournalUnlocked(true);
+  }
+
+  async function removePin(code) {
+    try {
+      if (pinSalt) {
+        const cle = await deriverClePin(code, pinSalt);
+        const raw = localStorage.getItem("clarise_journal");
+        const data = raw ? await dechiffrerJournal(raw, cle) : [];
+        journalKeyRef.current = null;
+        localStorage.removeItem("clarise_pin_salt");
+        setPinSalt(null);
+        setJournal(data); // repasse en clair via l'effet de persistance
+        setJournalUnlocked(true);
+        return true;
+      }
+      if (legacyPinHash) {
+        if (pinHash(code) !== legacyPinHash) return false;
+        localStorage.removeItem("clarise_pin");
+        setLegacyPinHash(null);
+        setJournalUnlocked(true);
+        return true;
+      }
+      return false;
+    } catch (e) { return false; }
+  }
+
   function forgotPin() {
     const ok = window.confirm(
       "Par sécurité, réinitialiser le code effacera tout le contenu du journal.\n\nEffacer le journal et supprimer le code ?");
     if (ok) {
+      journalKeyRef.current = null;
+      try { localStorage.removeItem("clarise_pin_salt"); localStorage.removeItem("clarise_pin"); } catch {}
+      setPinSalt(null);
+      setLegacyPinHash(null);
+      setPendingSave(null);
       setJournal([]);
-      setJournalPin(null);
       setJournalUnlocked(true);
     }
   }
+  // Tranche d'âge, demandée une fois après le tutoriel. Sert uniquement à
+  // prioriser les bonnes ressources et à adapter le langage de Clarisse.
+  // Reste sur l'appareil ; n'est jamais envoyée avec les messages analysés.
+  const [trancheAge, setTrancheAge] = useState(() => {
+    try { return localStorage.getItem("clarise_age") || null; } catch { return null; }
+  });
+  const estMineur = trancheAge === "moins15" || trancheAge === "15a17";
+  function choisirAge(cle) {
+    try { localStorage.setItem("clarise_age", cle); } catch {}
+    setTrancheAge(cle);
+  }
+  // Pour un mineur, les ressources qui lui sont destinées (119, 3018, Fil
+  // Santé Jeunes) passent en tête — c'est là que se joue l'utilité réelle.
+  // On ne masque jamais rien aux autres : le 119 sert aussi à un adulte qui
+  // s'inquiète pour un enfant, et quelqu'un qui n'a pas voulu donner son âge
+  // doit voir toutes les options.
+  const ressourcesOrdonnees = estMineur
+    ? [...RESSOURCES].sort((a, b) => (b.pourMineurs ? 1 : 0) - (a.pourMineurs ? 1 : 0))
+    : RESSOURCES;
+
   const [showHelp, setShowHelp] = useState(true);  // afficher les textes d'aide
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -3058,7 +3418,7 @@ export default function ClariseApp() {
   // survive aux changements d'onglet tant que l'app est ouverte, et disparaisse
   // à la fermeture. Seules les notes ajoutées au journal sont conservées.
   const [coachMessages, setCoachMessages] = useState([
-    { role: "assistant", text: "Bonjour, je suis Clarisse. Je suis là pour t'écouter. Raconte-moi ce qui se passe, et prends tout le temps qu'il te faut." },
+    { role: "assistant", text: "Bonjour, je suis Clarisse, ta coach IA. Je suis là pour t'écouter. Raconte-moi ce qui se passe, et prends tout le temps qu'il te faut." },
   ]);
   const [coachInput, setCoachInput] = useState("");
   const [coachAdded, setCoachAdded] = useState({});
@@ -3229,7 +3589,7 @@ export default function ClariseApp() {
   // Remettre la page tout en haut chaque fois qu'on change d'écran
   const contentRef = useRef(null);
   const viewKey = [tab, settingsOpen, analysing ? "a" : "", openQcm, qcmListOpen,
-    openMeca, mecaAxe, mecaFamille, mecaAxeListOpen, openAide, violentoOpen].join("|");
+    openMeca, mecaAxe, mecaFamille, mecaAxeListOpen, openAide, violentoOpen, !!pendingSave].join("|");
   useEffect(() => {
     // Une animation de défilement en cours doit être interrompue, sinon elle
     // continuerait de tirer la page vers l'ancienne cible après le changement.
@@ -3239,6 +3599,16 @@ export default function ClariseApp() {
   }, [viewKey]);
 
   function handleResult(r) { setAnalysing(r); setSaved(false); }
+  // Point de passage unique pour toute écriture dans le journal. Si une
+  // protection existe mais n'a pas encore été déverrouillée cette session, on
+  // met l'entrée en attente et on demande le code au lieu d'écrire dans le
+  // vide — voir le routage plus bas, qui affiche alors l'écran de code.
+  function requestJournalWrite(entry, after) {
+    if (hasPin && !journalKeyRef.current) { setPendingSave({ entry, after }); return; }
+    setJournal(j => [entry, ...j]);
+    if (after) after();
+  }
+
   function saveAnalysis() {
     if (saved || !analysing) return;
     const entry = {
@@ -3248,39 +3618,43 @@ export default function ClariseApp() {
       tags: (analysing.cards || []).map(c => c.category).slice(0, 4),
       level: analysing.level,
     };
-    setJournal([entry, ...journal]); setSaved(true);
+    requestJournalWrite(entry, () => setSaved(true));
   }
   function newAnalysis() { setAnalysing(null); }
   function addNote(text) {
-    setJournal([{ id: Date.now(), author: "Note", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] }, ...journal]);
+    requestJournalWrite({ id: Date.now(), author: "Note", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] });
   }
   function addCoachNote(text) {
     const clean = String(text).replace(/\[URGENCE\]/g, "").replace(/\n{3,}/g, "\n\n").trim();
-    setJournal([{ id: Date.now(), author: "Conseil du coach", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: clean, tags: [] }, ...journal]);
+    requestJournalWrite({ id: Date.now(), author: "Conseil du coach", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: clean, tags: [] });
   }
 
   const isCoach = tab === "coach" && !settingsOpen;
   let body;
-  if (settingsOpen) body = (
+  if (pendingSave) body = (
+    <PinLockScreen onUnlock={tryUnlockJournal} onForgot={forgotPin}
+      message="Entre ton code pour enregistrer ceci dans ton journal." />
+  );
+  else if (settingsOpen) body = (
     <SettingsScreen showHelp={showHelp} setShowHelp={setShowHelp} onBack={() => setSettingsOpen(false)}
       onReplayTutorial={() => { setSettingsOpen(false); setShowOnboarding(true); }}
       journal={journal}
       onExport={() => exportJournal(journal)}
       onClear={() => setJournal([])}
-      hasPin={!!pinStored}
-      onSetPin={(code) => setJournalPin(code)}
-      onRemovePin={(code) => { if (pinHash(code) === pinStored) { setJournalPin(null); return true; } return false; }} />
+      hasPin={hasPin}
+      onSetPin={(code) => activerPin(code)}
+      onRemovePin={(code) => removePin(code)} />
   );
   else if (tab === "analyser") body = analysing
     ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis} saved={saved} />
     : <AnalyserScreen onResult={handleResult} journal={journal} />;
-  else if (tab === "journal") body = (pinStored && !journalUnlocked)
+  else if (tab === "journal") body = (hasPin && !journalUnlocked)
     ? <PinLockScreen onUnlock={tryUnlockJournal} onForgot={forgotPin} />
     : <JournalScreen entries={journal} onAddNote={addNote} />;
   else if (isCoach) body = <CoachScreen onAddToJournal={addCoachNote} journal={journal}
     messages={coachMessages} setMessages={setCoachMessages}
     input={coachInput} setInput={setCoachInput}
-    added={coachAdded} setAdded={setCoachAdded} />;
+    added={coachAdded} setAdded={setCoachAdded} trancheAge={trancheAge} />;
   else if (openQcm !== null) body = (
     <QcmRunner module={QCM_MODULES[openQcm]}
       onBack={() => { setOpenQcm(null); if (!qcmFromList) setQcmListOpen(false); }} />
@@ -3324,6 +3698,7 @@ export default function ClariseApp() {
       onOpenMeca={(i) => { setMecaFromCarousel(true); setOpenMeca(i); }}
       onSeeAllMeca={() => setMecaAxeListOpen(true)}
       onOpenAide={setOpenAide}
+      ressources={ressourcesOrdonnees}
       onOpenViolento={() => setViolentoOpen(true)} />
   );
 
@@ -3334,9 +3709,10 @@ export default function ClariseApp() {
       display: "flex", flexDirection: "column", overflow: "hidden",
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={closeOnboarding} />}
+        {!showOnboarding && !trancheAge && <AgeScreen onChoose={choisirAge} />}
         {/* Sortie rapide : quitte immédiatement Clarisé vers une page neutre. */}
         <button
-          onClick={() => { try { window.location.replace("https://www.google.com"); } catch { window.location.href = "https://www.google.com"; } }}
+          onClick={sortieRapide}
           aria-label="Sortie rapide"
           style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: 66, zIndex: 40,
             width: 38, height: 38, borderRadius: 999, border: "none",
@@ -3358,7 +3734,7 @@ export default function ClariseApp() {
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!(kbOpen || typing) && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaAxe(null); setMecaFamille(null); setMecaAxeListOpen(false); setMecaFromCarousel(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
+        {!(kbOpen || typing) && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); setPendingSave(null); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaAxe(null); setMecaFamille(null); setMecaAxeListOpen(false); setMecaFromCarousel(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
