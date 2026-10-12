@@ -23,7 +23,8 @@ const T = {
   text: "#3A3A3A",
   textSoft: "#6B6B6B",
   white: "#FFFFFF",     // cartes / zones blanches : blanc pur, franc contraste avec le fond rosé
-  inputBg: "#FFFFFF",   // fond des zones de saisie (textarea/input) : blanc pur, plus contrasté
+  inputBg: "#FFFFFF",   // fond des zones de saisie (textarea/input) posées sur le fond rosé : blanc pur
+  inputOnWhite: "#F8F6F7", // fond des zones de saisie posées DANS une carte blanche (sinon invisibles)
   pink: "#C87483",      // couleur principale
   pinkDark: "#A85667",  // appui / pressé
   pinkSoft: "#E3A9B4",  // version douce (désactivé, contours)
@@ -1529,6 +1530,7 @@ function AnalyserScreen({ onResult, journal }) {
   const [error, setError] = useState(null); // { titre, texte } ou null
   const [questions, setQuestions] = useState(null); // liste de questions de contexte
   const [answers, setAnswers] = useState(""); // réponses de la personne
+  const [contexteOuvert, setContexteOuvert] = useState(false); // champs Expéditeur / Relation repliés par défaut
 
   const tooLong = msg.length > MAX_MSG;
 
@@ -1537,7 +1539,7 @@ function AnalyserScreen({ onResult, journal }) {
     if (!msg.trim()) {
       setError({
         titre: "Aucun message à analyser",
-        texte: "Colle d'abord un message dans la zone au-dessus, puis appuie sur Analyser.",
+        texte: "Colle d'abord un message dans la zone au-dessus, puis appuie sur « Analyser le message ».",
       });
       return;
     }
@@ -1592,64 +1594,91 @@ function AnalyserScreen({ onResult, journal }) {
 
   return (
     <div>
-      <Header title="Analyser un message" sub="Colle un message pour détecter s'il contient des signes de manipulation" />
+      <Header
+        title="Comprendre un message"
+        sub="Un message te fait douter ou te met mal à l'aise ? Clarisé t'aide à y voir plus clair." />
 
-      <div style={{ background: T.band, borderRadius: 20, padding: "18px 16px 14px", margin: "0 -4px" }}>
-        <p style={{ fontSize: 15, color: T.text, margin: "0 0 10px", fontWeight: 700 }}>
-          Message
+      {/* Carte blanche : le message, et rien d'autre tant qu'on ne demande pas le contexte. */}
+      <div style={{ background: T.white, borderRadius: 20, padding: "18px 16px 14px",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}>
+        {/* Même typo que les titres de cartes blanches (« Mon climat relationnel ») */}
+        <p style={{ margin: "0 0 10px", fontWeight: 700, fontSize: 16, color: T.text }}>
+          Le message à analyser
         </p>
         <textarea
           value={msg} onChange={e => { setMsg(e.target.value); if (error) setError(null); }}
-          placeholder={'Ex : "Si tu ne comprends pas que c\'est de ta faute, tu vas avoir des problèmes…"'}
-          style={{ width: "100%", minHeight: 100, background: T.inputBg,
+          placeholder="Colle ou écris ton message ici…"
+          style={{ width: "100%", minHeight: 118, background: T.inputOnWhite,
             border: tooLong ? "1.5px solid #D06A70" : "none", borderRadius: 12,
             padding: 20, fontSize: 16.5, lineHeight: 1.45, color: T.text, resize: "none", boxSizing: "border-box",
-            fontFamily: font, outline: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+            fontFamily: font, outline: "none" }}
         />
-        {/* compteur de caractères */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-          <span style={{ fontSize: 12.5, color: tooLong ? "#B42318" : T.textSoft, fontWeight: tooLong ? 700 : 400 }}>
-            {msg.length} / {MAX_MSG}
-          </span>
-        </div>
+        {/* compteur de caractères — discret, et seulement quand on approche de la limite */}
+        {msg.length > MAX_MSG * 0.7 && (
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+            <span style={{ fontSize: 12.5, color: tooLong ? "#B42318" : T.textSoft, fontWeight: tooLong ? 700 : 400 }}>
+              {msg.length} / {MAX_MSG}
+            </span>
+          </div>
+        )}
+        {tooLong && (
+          <p style={{ fontSize: 13, color: "#B42318", margin: "6px 0 0", lineHeight: 1.4 }}>
+            Ce message est un peu trop long pour être analysé d'un coup. Essaie de le raccourcir, ou de coller seulement le passage qui t'interroge.
+          </p>
+        )}
+
+        {/* Contexte facultatif : replié par défaut, pour ne pas donner l'impression
+            qu'il faut remplir trois champs avant de pouvoir lancer une analyse. */}
+        {!contexteOuvert ? (
+          <button onClick={() => setContexteOuvert(true)}
+            style={{ marginTop: 12, background: "none", border: "none", padding: "4px 0",
+              display: "flex", alignItems: "center", gap: 7, cursor: "pointer",
+              color: T.pink, fontFamily: font, fontSize: 15, fontWeight: 700 }}>
+            <Plus size={16} strokeWidth={2.6} />
+            Ajouter du contexte (facultatif)
+          </button>
+        ) : (
+          <div style={{ marginTop: 16 }}>
+            <p style={{ fontSize: 12.5, color: T.textSoft, margin: "0 0 14px", lineHeight: 1.4 }}>
+              Un même message peut être tendre ou blessant selon qui l'écrit. Ce petit contexte aide Clarisé à être plus juste.
+            </p>
+
+            {/* Même famille, un cran en dessous du titre de la carte */}
+            <p style={{ margin: "0 0 8px", fontWeight: 700, fontSize: 15, color: T.text }}>
+              De qui vient ce message ?
+            </p>
+            <input
+              value={author} onChange={e => setAuthor(e.target.value)}
+              placeholder="ex : ta mère, Marc, ton patron…"
+              style={{ width: "100%", background: T.inputOnWhite, border: "none", borderRadius: 12, padding: "16px 18px",
+                fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none" }}
+            />
+
+            <p style={{ margin: "16px 0 8px", fontWeight: 700, fontSize: 15, color: T.text }}>
+              Où en êtes-vous, tous les deux ?
+            </p>
+            <textarea
+              value={relation}
+              onChange={e => {
+                setRelation(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
+              }}
+              placeholder="ex : mon ex, on est en bons termes / mon copain, c'est tendu…"
+              rows={1}
+              style={{ width: "100%", background: T.inputOnWhite, border: "none", borderRadius: 12, padding: "16px 18px",
+                fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
+                resize: "none", overflowY: "auto", minHeight: 78, maxHeight: 160, lineHeight: 1.4 }}
+            />
+
+            <button onClick={() => setContexteOuvert(false)}
+              style={{ marginTop: 14, background: "none", border: "none", padding: "4px 0", cursor: "pointer",
+                color: T.textSoft, fontFamily: font, fontSize: 13.5, textDecoration: "underline" }}>
+              Masquer le contexte
+            </button>
+          </div>
+        )}
       </div>
-      {tooLong && (
-        <p style={{ fontSize: 13, color: "#B42318", margin: "8px 0 0", lineHeight: 1.4 }}>
-          Ce message est un peu trop long pour être analysé d'un coup. Essaie de le raccourcir, ou de coller seulement le passage qui t'interroge.
-        </p>
-      )}
-
-      <p style={{ fontSize: 15, color: T.text, margin: "16px 0 8px", fontWeight: 400 }}>
-        Expéditeur
-      </p>
-      <input
-        value={author} onChange={e => setAuthor(e.target.value)}
-        placeholder="ex : ta mère, Marc, ton patron…"
-        style={{ width: "100%", background: T.inputBg, border: "none", borderRadius: 12, padding: "16px 18px",
-          fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-      />
-
-      <p style={{ fontSize: 13.5, color: T.textSoft, margin: "16px 0 8px", fontWeight: 400 }}>
-        Ta relation avec l'expéditeur <span style={{ fontStyle: "italic" }}>(optionnel)</span>
-      </p>
-      <textarea
-        value={relation}
-        onChange={e => {
-          setRelation(e.target.value);
-          e.target.style.height = "auto";
-          e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
-        }}
-        placeholder="ex : mon ex, on est en bons termes / mon copain, c'est tendu…"
-        rows={1}
-        style={{ width: "100%", background: T.inputBg, border: "none", borderRadius: 12, padding: "16px 18px",
-          fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
-          resize: "none", overflowY: "auto", minHeight: 78, maxHeight: 160, lineHeight: 1.4,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-      />
-      <p style={{ fontSize: 12.5, color: T.textSoft, marginTop: 8, lineHeight: 1.4 }}>
-        Un même message peut être tendre ou blessant selon qui l'écrit. Ce petit contexte aide Clarisé à être plus juste.
-      </p>
 
       <button onClick={() => run()} disabled={loading || tooLong}
         onMouseDown={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
@@ -1657,15 +1686,15 @@ function AnalyserScreen({ onResult, journal }) {
         onMouseLeave={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
         onTouchStart={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pinkDark; }}
         onTouchEnd={e => { if (!loading && msg.trim() && !tooLong) e.currentTarget.style.background = T.pink; }}
-        style={{ width: "100%", marginTop: 24, background: (loading || tooLong) ? T.pinkSoft : T.pink, color: "#fff",
+        style={{ width: "100%", marginTop: 14, background: (loading || tooLong) ? T.pinkSoft : T.pink, color: "#fff",
           border: "none", borderRadius: T.radius, padding: "18px", fontSize: 19, fontWeight: 700,
           fontFamily: font, cursor: (loading || tooLong) ? "default" : "pointer", transition: "background .15s",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        {loading ? <>Analyse en cours <ThinkingDots /></> : "Analyser"}
+        {loading ? <>Analyse en cours <ThinkingDots /></> : "Analyser le message"}
       </button>
 
-      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 16, lineHeight: 1.4 }}>
-        Cette analyse n'est pas un diagnostic, elle t'aide à prendre du recul.
+      <p style={{ fontSize: 12.5, color: T.textSoft, textAlign: "center", marginTop: 14, lineHeight: 1.4 }}>
+        Une analyse nuancée, pas un jugement sur la personne.
       </p>
 
       {/* Questions de contexte quand le message est ambigu */}
@@ -3500,7 +3529,11 @@ export default function ClariseApp() {
       if (c.scrollHeight <= c.clientHeight + 1) return;
       const elRect = el.getBoundingClientRect();
       const cRect = c.getBoundingClientRect();
-      const MARGE_HAUT = 110; // distance entre le haut de la zone et le champ
+      // Distance entre le haut de la zone de défilement et le champ.
+      // La barre du haut (sortie rapide + paramètres) occupe désormais ~44 px
+      // AU-DESSUS de cette zone : la marge a été réduite d'autant pour que le
+      // champ se retrouve exactement à la même hauteur à l'écran qu'avant.
+      const MARGE_HAUT = 66;
       const delta = elRect.top - (cRect.top + MARGE_HAUT);
       if (Math.abs(delta) > 4) {
         // On borne la cible aux limites réelles de la page, sinon l'animation
@@ -3710,27 +3743,32 @@ export default function ClariseApp() {
       fontFamily: font, position: "relative" }}>
         {showOnboarding && <Onboarding onClose={closeOnboarding} />}
         {!showOnboarding && !trancheAge && <AgeScreen onChoose={choisirAge} />}
-        {/* Sortie rapide : quitte immédiatement Clarisé vers une page neutre. */}
-        <button
-          onClick={sortieRapide}
-          aria-label="Sortie rapide"
-          style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: 66, zIndex: 40,
-            width: 38, height: 38, borderRadius: 999, border: "none",
-            background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", backdropFilter: "blur(4px)", color: T.pinkDark }}>
-          <LogOut size={18} strokeWidth={2.4} />
-        </button>
-        {/* Bouton Paramètres (engrenage) */}
-        {!settingsOpen && (
-          <button onClick={() => setSettingsOpen(true)} aria-label="Paramètres"
-            style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 12px)", right: 20, zIndex: 5, width: 38, height: 38, borderRadius: 999,
-              border: "none", background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center",
-              justifyContent: "center", cursor: "pointer", backdropFilter: "blur(4px)" }}>
-            <Settings size={20} color={T.pink} />
+        {/* Barre du haut : sortie rapide + paramètres.
+            Elle fait partie du flux de la page (et n'est plus superposée en absolu) :
+            sinon les deux boutons recouvrent le titre des écrans dont le titre est long. */}
+        <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8,
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)", paddingLeft: 22, paddingRight: 20 }}>
+          {/* Sortie rapide : quitte immédiatement Clarisé vers une page neutre. */}
+          <button
+            onClick={sortieRapide}
+            aria-label="Sortie rapide"
+            style={{ width: 38, height: 38, borderRadius: 999, border: "none", flexShrink: 0,
+              background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", backdropFilter: "blur(4px)", color: T.pinkDark }}>
+            <LogOut size={18} strokeWidth={2.4} />
           </button>
-        )}
+          {/* Bouton Paramètres (engrenage) */}
+          {!settingsOpen && (
+            <button onClick={() => setSettingsOpen(true)} aria-label="Paramètres"
+              style={{ width: 38, height: 38, borderRadius: 999, border: "none", flexShrink: 0,
+                background: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center",
+                justifyContent: "center", cursor: "pointer", backdropFilter: "blur(4px)" }}>
+              <Settings size={20} color={T.pink} />
+            </button>
+          )}
+        </div>
         <div ref={contentRef} style={{ flex: 1, minHeight: 0, overflowY: isCoach ? "hidden" : "auto",
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 18px)", paddingLeft: 22, paddingRight: 22, paddingBottom: 16,
+          paddingTop: 6, paddingLeft: 22, paddingRight: 22, paddingBottom: 16,
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
