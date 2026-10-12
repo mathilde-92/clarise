@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, createContext, useContext } from "react";
 import {
-  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, LogOut, Tag as TagIcon, Award, Frown, VolumeX, Users, DoorOpen, Zap, HelpCircle, Smile, Clock, Repeat2, Layers, Quote, ThumbsUp, Crown, Hourglass, TrendingDown, Wallet, TrendingUp, Newspaper, Cpu, Triangle, Activity
+  Search, NotebookPen, MessageCircle, Navigation, ArrowLeft, Send, Bookmark, AlertTriangle, Phone, Settings, ChevronRight, Hand, Heart, EyeOff, ArrowDown, ArrowLeftRight, Eye, MessageSquare, Repeat, Shrink, Droplet, Link2, RefreshCw, Moon, UserMinus, Lock, BellOff, Brain, User, Anchor, Sparkles, Target, Scale, Battery, Check, Plus, Minus, LogOut, Tag as TagIcon, Award, Frown, VolumeX, Users, DoorOpen, Zap, HelpCircle, Smile, Clock, Repeat2, Layers, Quote, ThumbsUp, Crown, Hourglass, TrendingDown, Wallet, TrendingUp, Newspaper, Cpu, Triangle, Activity
 } from "lucide-react";
 
 // Adresse du serveur Clarisé (le backend qui parle à l'IA en gardant la clé secrète).
@@ -1522,17 +1522,27 @@ function historiqueExpediteur(journal, author) {
     }));
 }
 
-function AnalyserScreen({ onResult, journal }) {
-  const [msg, setMsg] = useState("");
-  const [author, setAuthor] = useState("");
-  const [relation, setRelation] = useState("");
+function AnalyserScreen({ onResult, journal, brouillon, setBrouillon }) {
+  // Le brouillon (message, expéditeur, contexte) est gardé par le composant
+  // parent : il survit donc à un changement d'onglet, et permet de revenir
+  // depuis l'écran de résultat pour affiner sans avoir à tout retaper.
+  const { msg, author, relation, contexteOuvert } = brouillon;
+  const majBrouillon = patch => setBrouillon(b => ({ ...b, ...patch }));
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null); // { titre, texte } ou null
   const [questions, setQuestions] = useState(null); // liste de questions de contexte
   const [answers, setAnswers] = useState(""); // réponses de la personne
-  const [contexteOuvert, setContexteOuvert] = useState(false); // champs Expéditeur / Relation repliés par défaut
 
   const tooLong = msg.length > MAX_MSG;
+
+  // Le champ « contexte » grandit avec son contenu. Un ref-callback plutôt
+  // qu'un effet : il se déclenche aussi quand le champ réapparaît déjà rempli.
+  const ajusterHauteur = el => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  };
 
   async function run(withAnswers) {
     // Champ vide
@@ -1573,7 +1583,7 @@ function AnalyserScreen({ onResult, journal }) {
         return;
       }
       setQuestions(null);
-      onResult({ message: msg.trim(), author: author.trim(), ...result });
+      onResult({ message: msg.trim(), author: author.trim(), relation: relation.trim(), ...result });
     } catch (e) {
       const offline = typeof navigator !== "undefined" && navigator.onLine === false;
       if (offline) {
@@ -1606,7 +1616,7 @@ function AnalyserScreen({ onResult, journal }) {
           Le message à analyser
         </p>
         <textarea
-          value={msg} onChange={e => { setMsg(e.target.value); if (error) setError(null); }}
+          value={msg} onChange={e => { majBrouillon({ msg: e.target.value }); if (error) setError(null); }}
           placeholder="Colle ou écris ton message ici…"
           style={{ width: "100%", minHeight: 118, background: T.inputOnWhite,
             border: tooLong ? "1.5px solid #D06A70" : "none", borderRadius: 12,
@@ -1628,17 +1638,27 @@ function AnalyserScreen({ onResult, journal }) {
         )}
 
         {/* Contexte facultatif : replié par défaut, pour ne pas donner l'impression
-            qu'il faut remplir trois champs avant de pouvoir lancer une analyse. */}
-        {!contexteOuvert ? (
-          <button onClick={() => setContexteOuvert(true)}
-            style={{ marginTop: 12, background: "none", border: "none", padding: "4px 0",
-              display: "flex", alignItems: "center", gap: 7, cursor: "pointer",
-              color: T.pink, fontFamily: font, fontSize: 15, fontWeight: 700 }}>
-            <Plus size={16} strokeWidth={2.6} />
-            Ajouter du contexte (facultatif)
-          </button>
-        ) : (
-          <div style={{ marginTop: 16 }}>
+            qu'il faut remplir trois champs avant de pouvoir lancer une analyse.
+            Un seul bouton, qui ne bouge pas : seuls l'icône et le libellé changent. */}
+        <button onClick={() => majBrouillon({ contexteOuvert: !contexteOuvert })}
+          style={{ marginTop: 12, background: "none", border: "none", padding: "4px 0",
+            display: "flex", alignItems: "center", gap: 7, cursor: "pointer",
+            color: T.pink, fontFamily: font, fontSize: 15, fontWeight: 700 }}>
+          {contexteOuvert
+            ? <Minus size={16} strokeWidth={2.6} />
+            : <Plus size={16} strokeWidth={2.6} />}
+          {contexteOuvert ? "Masquer le contexte" : "Ajouter du contexte (facultatif)"}
+        </button>
+
+        {/* Dire le bénéfice, pas seulement proposer l'option. */}
+        {!contexteOuvert && (
+          <p style={{ fontSize: 12.5, color: T.textSoft, margin: "6px 0 0", lineHeight: 1.4 }}>
+            Dire de qui vient ce message rend l'analyse bien plus juste.
+          </p>
+        )}
+
+        {contexteOuvert && (
+          <div style={{ marginTop: 14 }}>
             <p style={{ fontSize: 12.5, color: T.textSoft, margin: "0 0 14px", lineHeight: 1.4 }}>
               Un même message peut être tendre ou blessant selon qui l'écrit. Ce petit contexte aide Clarisé à être plus juste.
             </p>
@@ -1648,7 +1668,7 @@ function AnalyserScreen({ onResult, journal }) {
               De qui vient ce message ?
             </p>
             <input
-              value={author} onChange={e => setAuthor(e.target.value)}
+              value={author} onChange={e => majBrouillon({ author: e.target.value })}
               placeholder="ex : ta mère, Marc, ton patron…"
               style={{ width: "100%", background: T.inputOnWhite, border: "none", borderRadius: 12, padding: "16px 18px",
                 fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none" }}
@@ -1658,24 +1678,15 @@ function AnalyserScreen({ onResult, journal }) {
               Où en êtes-vous, tous les deux ?
             </p>
             <textarea
+              ref={ajusterHauteur}
               value={relation}
-              onChange={e => {
-                setRelation(e.target.value);
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 160) + "px";
-              }}
+              onChange={e => { majBrouillon({ relation: e.target.value }); ajusterHauteur(e.target); }}
               placeholder="ex : mon ex, on est en bons termes / mon copain, c'est tendu…"
               rows={1}
               style={{ width: "100%", background: T.inputOnWhite, border: "none", borderRadius: 12, padding: "16px 18px",
                 fontSize: 15.5, color: T.text, boxSizing: "border-box", fontFamily: font, outline: "none",
                 resize: "none", overflowY: "auto", minHeight: 78, maxHeight: 160, lineHeight: 1.4 }}
             />
-
-            <button onClick={() => setContexteOuvert(false)}
-              style={{ marginTop: 14, background: "none", border: "none", padding: "4px 0", cursor: "pointer",
-                color: T.textSoft, fontFamily: font, fontSize: 13.5, textDecoration: "underline" }}>
-              Masquer le contexte
-            </button>
           </div>
         )}
       </div>
@@ -1778,9 +1789,11 @@ function AnalysisCard({ card, level }) {
 // ============================================================
 //  Screen: Analyse (result)
 // ============================================================
-function AnalyseScreen({ result, onSave, onNew, saved }) {
+function AnalyseScreen({ result, onSave, onNew, onAffiner, saved }) {
   const tint = CARD_TINT[result.level] || CARD_TINT.preoccupant;
   const [showReplies, setShowReplies] = useState(false);
+  // Analyse faite à l'aveugle : ni expéditeur ni contexte.
+  const sansContexte = !(result.author || "").trim() && !(result.relation || "").trim();
   return (
     <div>
       <Header title="Analyse" sub="Résultat de ton analyse" />
@@ -1849,6 +1862,33 @@ function AnalyseScreen({ result, onSave, onNew, saved }) {
           Nouvelle analyse
         </button>
       </div>
+
+      {/* Analyse faite sans aucun contexte : on propose de la refaire, sans
+          jeter le doute sur celle qu'on vient de donner. Le message est
+          conservé, la personne n'a que le contexte à remplir. */}
+      {sansContexte && onAffiner && (
+        <div style={{ marginTop: 20, background: T.white, border: `1px solid ${T.pinkBorder}`,
+          borderRadius: T.radius, padding: "16px 18px 18px" }}>
+          <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 15, color: T.text }}>
+            Cette analyse a été faite sans contexte
+          </p>
+          <p style={{ margin: "0 0 14px", fontSize: 14, color: T.textSoft, lineHeight: 1.45 }}>
+            Un même message ne veut pas dire la même chose selon qui l'écrit. En indiquant
+            de qui il vient et où vous en êtes, Clarisé peut être nettement plus juste.
+          </p>
+          <button onClick={onAffiner}
+            style={{ width: "100%", background: "transparent", color: T.pink, border: `1.5px solid ${T.pink}`,
+              borderRadius: 12, padding: "13px", fontSize: 15.5, fontWeight: 700, fontFamily: font,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Plus size={16} strokeWidth={2.6} />
+            Ajouter le contexte et relancer
+          </button>
+          <p style={{ margin: "10px 0 0", fontSize: 12.5, color: T.textSoft, textAlign: "center", lineHeight: 1.4 }}>
+            Ton message est gardé, tu n'as pas à le recoller.
+          </p>
+        </div>
+      )}
+
       <p style={{ fontSize: 13, color: T.textSoft, textAlign: "center", marginTop: 24, lineHeight: 1.4 }}>
         Cette analyse n'est pas un diagnostic, elle t'aide à prendre du recul.
       </p>
@@ -3260,9 +3300,14 @@ function Onboarding({ onClose }) {
 // ============================================================
 //  App shell
 // ============================================================
+const BROUILLON_VIDE = { msg: "", author: "", relation: "", contexteOuvert: false };
+
 export default function ClariseApp() {
   const [tab, setTab] = useState("analyser");
   const [analysing, setAnalysing] = useState(null); // result object or null
+  // Brouillon de l'écran Analyser, gardé ici pour survivre à un changement
+  // d'onglet et pour pouvoir relancer une analyse en ajoutant du contexte.
+  const [brouillon, setBrouillon] = useState(BROUILLON_VIDE);
   const [saved, setSaved] = useState(false);
   // Journal : conservé sur le téléphone (localStorage), jamais sur un serveur.
   // Si un code PIN protège le journal, son contenu est chiffré sur le disque
@@ -3653,7 +3698,20 @@ export default function ClariseApp() {
     };
     requestJournalWrite(entry, () => setSaved(true));
   }
-  function newAnalysis() { setAnalysing(null); }
+  function newAnalysis() { setAnalysing(null); setBrouillon(BROUILLON_VIDE); }
+
+  // Revenir sur l'écran Analyser avec le message déjà en place et le bloc
+  // contexte ouvert : la personne n'a plus qu'à dire de qui vient le message.
+  function affinerAnalyse() {
+    if (!analysing) return;
+    setBrouillon({
+      msg: analysing.message || "",
+      author: analysing.author || "",
+      relation: analysing.relation || "",
+      contexteOuvert: true,
+    });
+    setAnalysing(null);
+  }
   function addNote(text) {
     requestJournalWrite({ id: Date.now(), author: "Note", date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }), message: text, tags: [] });
   }
@@ -3679,8 +3737,10 @@ export default function ClariseApp() {
       onRemovePin={(code) => removePin(code)} />
   );
   else if (tab === "analyser") body = analysing
-    ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis} saved={saved} />
-    : <AnalyserScreen onResult={handleResult} journal={journal} />;
+    ? <AnalyseScreen result={analysing} onSave={saveAnalysis} onNew={newAnalysis}
+        onAffiner={affinerAnalyse} saved={saved} />
+    : <AnalyserScreen onResult={handleResult} journal={journal}
+        brouillon={brouillon} setBrouillon={setBrouillon} />;
   else if (tab === "journal") body = (hasPin && !journalUnlocked)
     ? <PinLockScreen onUnlock={tryUnlockJournal} onForgot={forgotPin} />
     : <JournalScreen entries={journal} onAddNote={addNote} />;
@@ -3772,7 +3832,7 @@ export default function ClariseApp() {
           display: "flex", flexDirection: "column" }}>
           {body}
         </div>
-        {!(kbOpen || typing) && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); setPendingSave(null); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaAxe(null); setMecaFamille(null); setMecaAxeListOpen(false); setMecaFromCarousel(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") setAnalysing(null); setTab(k); }} />}
+        {!(kbOpen || typing) && <BottomNav active={settingsOpen ? null : tab} onChange={(k) => { setSettingsOpen(false); setPendingSave(null); if (k !== "reperer") { setOpenQcm(null); setQcmListOpen(false); setOpenMeca(null); setMecaAxe(null); setMecaFamille(null); setMecaAxeListOpen(false); setMecaFromCarousel(false); setOpenAide(null); setViolentoOpen(false); } if (k === "analyser") { if (analysing) setBrouillon(BROUILLON_VIDE); setAnalysing(null); } setTab(k); }} />}
     </div>
     </HelpContext.Provider>
   );
